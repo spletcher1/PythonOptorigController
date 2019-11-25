@@ -4,14 +4,14 @@ import socketserver
 import serial
 
 class MyUART:
-    def __init__(self, ID):
-        #self.thePort=serial.Serial('/dev/ttyS0',19200)
+    def __init__(self):
         self.thePort=serial.Serial('/dev/ttyUSB0',115200,timeout=1000)
-        self.ID = ID
         self.startByte=0x40 #'@'
         self.endByte=0x23   #'#'
     def Write(self,s):
         self.thePort.write(s.encode())
+    def WriteByteArray(self,ba):
+        self.thePort.write(ba)
     def StartListening(self):
         while True:
             ser_byte=self.thePort.read()
@@ -19,8 +19,8 @@ class MyUART:
                 ser_bytes=self.thePort.read(2) 
                 if(ser_bytes[1]==self.endByte and ser_bytes[0]==self.ID):
                     
-                    print(tmp)
-                    self.Write(tmp)
+                    print('hi')
+                    ##self.Write(tmp)
                 else:
                     print('ID=%d is not for me or endBye (=%d) incorrect.' % (ser_bytes[0],  ser_bytes[1]))
                     #print(ser_bytes)
