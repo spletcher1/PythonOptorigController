@@ -8,8 +8,10 @@ class OptoLifespanRig:
     def __init__(self, ID):
         self.ID = ID
         self.thePort=MyUART.MyUART()
-        self.startByte=0x40 #'@'
-        self.endByte=0x23   #'#'
+        self.startByte=0x40 
+        self.endByte=0x41   #'A'#'@'
+        self.remoteProgram = Program.Program()
+        self.localProgram = Program.Program()
     def SendStageProgram(self):
         ba = bytearray(4)
         ba[0]=self.startByte
@@ -81,9 +83,55 @@ class OptoLifespanRig:
         ba[2]=0x0C
         ba[3]=self.endByte
         self.thePort.WriteByteArray(ba)
-    def SendProgramStep(self,programStep):
+    def GetVersionInformation(self):
+        ba = bytearray(4)
+        ba[0]=self.startByte
+        ba[1]=self.ID
+        ba[2]=0x07
+        ba[3]=self.endByte
+        self.thePort.WriteByteArray(ba) 
+        result = self.thePort.Read(50)
+        return f'Firmware Version: {result.decode()}'
+    def UpdateRemoteProgramStatus(self):
+        ba = bytearray(4)
+        ba[0]=self.startByte
+        ba[1]=self.ID
+        ba[2]=0x09
+        ba[3]=self.endByte
+        self.thePort.WriteByteArray(ba) 
+        result = self.thePort.Read(34)
+        self.remoteProgram.FillProgramStatus(result)       
+    def UpdateRemoteProgramData(self):
+        ba = bytearray(4)
+        ba[0]=self.startByte
+        ba[1]=self.ID
+        ba[2]=0x01
+        ba[3]=self.endByte
+        self.thePort.WriteByteArray(ba) 
+        result = self.thePort.Read(3000)
+        if len(result)==0:
+            return "No response"
+        if result[0]==self.startByte and result[len(result)-1]==self.endByte:
+            self.remoteProgram.FillProgramData(result)
+        else:
+            print("No response")
+    def PrintRemoteProgram(self):
+        self.UpdateRemoteProgramData()
+        self.UpdateRemoteProgramStatus()
+        s1 = self.remoteProgram.GetProgramStatusString()
+        s2 = self.remoteProgram.GetProgramDataString()
+        return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
 
-    def 
+            
+        
+
+if __name__=="__main__" :
+    theRig = OptoLifespanRig(14)
+    p=theRig.PrintRemoteProgram()
+    print(p)
+    
+
+   
 
 
         

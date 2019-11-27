@@ -5,13 +5,17 @@ import serial
 
 class MyUART:
     def __init__(self):
-        self.thePort=serial.Serial('/dev/ttyUSB0',115200,timeout=1000)
+        self.thePort=serial.Serial('/dev/ttyUSB0',115200,timeout=1)
+        #self.thePort.open()
         self.startByte=0x40 #'@'
         self.endByte=0x23   #'#'
     def Write(self,s):
         self.thePort.write(s.encode())
     def WriteByteArray(self,ba):
         self.thePort.write(ba)
+    def Read(self,numBytes):
+        result=self.thePort.read(numBytes)
+        return result
     def StartListening(self):
         while True:
             ser_byte=self.thePort.read()
@@ -26,12 +30,3 @@ class MyUART:
                     #print(ser_bytes)
             else:
                 print('Bad Packet %d', ser_byte[0])
-
-if __name__=="__main__" :
-    uart = MyUART(1)
-    while True:
-        uart.Write("Hi there::")
-        print("Hi there::")
-        #tsl.PrintAllInfo()
-        time.sleep(2)
-    
