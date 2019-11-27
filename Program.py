@@ -42,6 +42,13 @@ class ProgramStep:
     def GetProgramStepString(self):
         s = 'Step = {:>3d}  Lights = {:>1d}  Freq = {:>3d}  Pulse = {:>3d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.lightsOn,self.frequency,self.pulseWidth,self.duration,self.elapsedDurationAtEnd.total_seconds())
         return s
+    def GetProgramStepArrayForUART(self):
+        s= str(self.lightsOn) + "," + str(self.frequency) + "," +str(self.pulseWidth) + "," + str(self.duration) +",A"
+        if len(s)<11 :
+            s= "0"+str(self.lightsOn) + ",0" + str(self.frequency) + "," +str(self.pulseWidth) + "," + str(self.duration) +",A"
+        return bytearray(s.encode())
+        
+
    
 
 
@@ -59,6 +66,14 @@ class Program:
         self.rtcTime = datetime.datetime(1,1,1)
         self.fullProgramSteps = []
         self.blockProgramSteps = []
+    def ClearProgram(self):
+        self.fullProgramSteps.clear()
+        self.blockProgramSteps.clear()
+        self.programType = ProgramType.NONE
+        self.programStatus = ProgramStatus.NONE
+        self.startTime = datetime.datetime(1,1,1)
+        self.totalProgramDuration = 0
+        
     def GetProgramStatusString(self):
         s="\n Program Type: "        
         if self.programType == ProgramType.LINEAR:
@@ -151,7 +166,6 @@ class Program:
         self.uninterruptedLoops += bytesData[31]<<16    
         self.uninterruptedLoops += bytesData[32]<<8    
         self.uninterruptedLoops += bytesData[33]   
-
     def FillInElapsedTimes(self):
         if len(self.fullProgramSteps)<1:
             return
@@ -160,7 +174,6 @@ class Program:
             self.fullProgramSteps[i].elapsedDurationAtEnd = self.fullProgramSteps[i-1].elapsedDurationAtEnd + self.fullProgramSteps[i].time
         self.totalProgramDuration = self.fullProgramSteps[len(self.fullProgramSteps)-1].elapsedDurationAtEnd.total_seconds()
         self.numSteps = len(self.fullProgramSteps)
-
     def FillProgramData(self, bytesData):
         theSplit = str(bytesData).split(',')
         numsteps = (int)((len(theSplit)-2)/5)
@@ -178,5 +191,14 @@ class Program:
             tmp.elapsedDurationAtEnd = datetime.timedelta(0)
             self.fullProgramSteps.append(tmp)
         self.FillInElapsedTimes()      
+    def LoadLocalProgram(self,filePath):
+        isInBlock = False
+        totalBlockIterations=1
+        tmp=""
+
+        readFile = open(filePath,'r')
+        program=readFile.readlines()
+        print(program)
+
 
             
