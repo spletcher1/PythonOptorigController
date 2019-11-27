@@ -1,0 +1,9 @@
+ProgramType: Looping
+StartTime: 18:00:05
+[BeginBlock]
+Iterations: 3
+Interval:1,45,50,1234
+Interval:0,45,50,1234
+[EndBlock]
+Interval:0,15,10,12
+Interval:0,11,8,1
