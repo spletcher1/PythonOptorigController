@@ -47,35 +47,6 @@ class OptoLifespanRig:
         ba[1]=0x05
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
-    def SendProgramType(self,programType):
-        ba = bytearray(5)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x0A
-        if programType == Program.ProgramType.LINEAR:
-            ba[3]=0x01
-        elif programType == Program.ProgramType.LOOPING:
-            ba[3]=0x02
-        elif programType == Program.ProgramType.CIRCADIAN:
-            ba[3]=0x03
-        else:
-            ba[3]=0x01
-        ba[4]=self.endByte
-        self.thePort.WriteByteArray(ba)
-    def SendProgramStartTime(self,startTime):
-        ba=bytearray(10)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x0B
-        tmp = startTime.timetuple()
-        ba[3]=tmp[0]-2000
-        ba[4]=tmp[1]
-        ba[5]=tmp[2]
-        ba[6]=tmp[3]
-        ba[7]=tmp[4]
-        ba[8]=tmp[5]
-        ba[9]=self.endByte
-        self.thePort.WriteByteArray(ba)
     def SendLoadProgram(self):
         ba = bytearray(3)
         ba[0]=self.ID
@@ -159,33 +130,52 @@ class OptoLifespanRig:
     def UploadLocalProgram(self):
         self.SendClearProgram()
         time.sleep(0.1)
-        ba = bytearray(5)    
-        ba[0]=self.ID        
+        ba = bytearray(256)    
+        ba[0]=self.ID   
+        ba[1]=0x0A     
         if self.localProgram.programType == Program.ProgramType.LINEAR:
-            ba[1]=0x01
+            ba[2]=0x01
         elif self.localProgram.programType == Program.ProgramType.LOOPING:
-            ba[1]=0x02
+            ba[2]=0x02
         elif self.localProgram.programType == Program.ProgramType.CIRCADIAN:
-            ba[1]=0x03
+            ba[2]=0x03
         else:
-            ba[1]=0x01
+            ba[2]=0x01
         tmp = self.localProgram.startTime.timetuple()
-        ba[2]=tmp[0]-2000
-        ba[3]=tmp[1]
-        ba[4]=tmp[2]
-        ba[5]=tmp[3]
-        ba[6]=tmp[4]
-        ba[7]=tmp[5]
+        ba[3]=tmp[0]-2000
+        ba[4]=tmp[1]
+        ba[5]=tmp[2]
+        ba[6]=tmp[3]
+        ba[7]=tmp[4]
+        ba[8]=tmp[5]
         
         maxProgramSteps=20
         if len(self.localProgram.fullProgramSteps) > maxProgramSteps:
             maxIndex = maxProgramSteps
         else:
             maxIndex = len(self.localProgram.fullProgramSteps)
+        currentbyteindex=9
         for index in range(maxIndex):
-                                  
-        
-        time.sleep(.5)
+            p=self.localProgram.fullProgramSteps[index]
+            ba[currentbyteindex]=p.lightsOn
+            tmp = p.frequency.to_bytes(2,byteorder='big')
+            ba[currentbyteindex+1]=tmp[0]
+            ba[currentbyteindex+2]=tmp[1]
+            tmp = p.pulseWidth.to_bytes(2,byteorder='big')
+            ba[currentbyteindex+3]=tmp[0]
+            ba[currentbyteindex+4]=tmp[1]
+            tmp = p.duration.to_bytes(4,byteorder='big')
+            ba[currentbyteindex+5]=tmp[0]
+            ba[currentbyteindex+6]=tmp[1]
+            ba[currentbyteindex+7]=tmp[2]
+            ba[currentbyteindex+8]=tmp[3]
+            currentbyteindex+=9          
+
+        ba=ba[0:currentbyteindex]     
+        encodedba=cobs.encode(ba)
+        encodedba=encodedba+b'0'
+        self.thePort.WriteByteArray(ba)
+        time.sleep(1)
         self.SendUpdateProgram()        
     def AreLocalAndRemoteProgramsIdentical(self):
         return self.localProgram.IsProgramIdentical(self.remoteProgram)
