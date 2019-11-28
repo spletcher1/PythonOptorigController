@@ -9,7 +9,7 @@ class MyUART:
         self.startByte=0x40 #'@'
         self.endByte=0x23   #'#'
     def Open(self,port):
-        self.thePort=serial.Serial(port,115200,timeout=.2)        
+        self.thePort=serial.Serial(port,19200,timeout=.5)        
     def Write(self,s):
         self.thePort.write(s.encode())
     def WriteByteArray(self,ba):

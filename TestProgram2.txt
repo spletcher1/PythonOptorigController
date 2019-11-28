@@ -1,3 +1,4 @@
+ProgramType: Looping
 [BeginBlock]
 Iterations: 3
 Interval:1,45,50,2

@@ -112,8 +112,12 @@ class OptoLifespanRig:
         ba[2]=0x09
         ba[3]=self.endByte
         self.thePort.WriteByteArray(ba) 
-        result = self.thePort.Read(34)
-        self.remoteProgram.FillProgramStatus(result)       
+        result = self.thePort.Read(2000)
+        if len(result) != 34:
+            print("Read more than 34 bytes: " + str(len(result)))
+            print(result)
+        else:
+            self.remoteProgram.FillProgramStatus(result)       
     def UpdateRemoteProgramData(self):
         ba = bytearray(4)
         ba[0]=self.startByte
@@ -128,12 +132,19 @@ class OptoLifespanRig:
             self.remoteProgram.FillProgramData(result)
         else:
             return "No response"
+    def UpdateRemoteProgram(self):
+        self.UpdateRemoteProgramData()
+        self.UpdateRemoteProgramStatus() 
     def GetRemoteProgramString(self):        
         self.UpdateRemoteProgramData()
         self.UpdateRemoteProgramStatus()
         s1 = self.remoteProgram.GetProgramStatusString()
         s2 = self.remoteProgram.GetProgramDataString()
         return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
+    def GetLocalProgramString(self):               
+        s1 = self.localProgram.GetProgramStatusString()
+        s2 = self.localProgram.GetProgramDataString()
+        return "\n***Current Local Program***\n"+ s1 + "\n\n" + s2
     def GetRemoteRTCString(self):
         ba = bytearray(4)
         ba[0]=self.startByte
@@ -167,14 +178,18 @@ class OptoLifespanRig:
         self.SendClearProgram()
         time.sleep(0.1)
         self.SendProgramType(self.localProgram.programType)
-        time.sleep(0.1)
+        time.sleep(0.1)        
         self.SendProgramStartTime(self.localProgram.startTime)
         time.sleep(0.1)
         for index in range(maxIndex):
             self.SendProgramStep(self.localProgram.fullProgramSteps[index])
-            time.sleep(0.02)
+            time.sleep(0.02)           
         self.SendUpdateProgram()
         time.sleep(0.1)
+    def AreLocalAndRemoteProgramsIdentical(self):
+        return self.localProgram.IsProgramIdentical(self.remoteProgram)
+    def LoadLocalProgram(self,filePath):
+        self.localProgram.LoadLocalProgram(filePath)
 
 
 if __name__=="__main__" :
