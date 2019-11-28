@@ -4,13 +4,14 @@ import socketserver
 import MyUART
 import Program
 import datetime
+from cobs import cobs
 
 class OptoLifespanRig:
     def __init__(self, ID):
         self.ID = ID
         self.thePort=MyUART.MyUART()
         self.startByte=0x40 
-        self.endByte=0x41   #'A'#'@'
+        self.endByte=0x00   #'A'#'@'
         self.remoteProgram = Program.Program()
         self.localProgram = Program.Program()
     def GetListOfOnlineRigs(self):
@@ -23,32 +24,28 @@ class OptoLifespanRig:
                 results[num] = tmp
         return results
     def SendStageProgram(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x02
-        ba[3]=self.endByte
+        ba = bytearray(3)
+        ba[0]=self.ID
+        ba[1]=0x02
+        ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
     def SendStopProgram(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x03
-        ba[3]=self.endByte
+        ba = bytearray(3)
+        ba[0]=self.ID
+        ba[1]=0x03
+        ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
     def SendClearProgram(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x04
-        ba[3]=self.endByte
+        ba = bytearray(3)        
+        ba[0]=self.ID
+        ba[1]=0x04
+        ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
     def SendSaveProgram(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x05
-        ba[3]=self.endByte
+        ba = bytearray(3)
+        ba[0]=self.ID
+        ba[1]=0x05
+        ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
     def SendProgramType(self,programType):
         ba = bytearray(5)
@@ -80,11 +77,10 @@ class OptoLifespanRig:
         ba[9]=self.endByte
         self.thePort.WriteByteArray(ba)
     def SendLoadProgram(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x06
-        ba[3]=self.endByte
+        ba = bytearray(3)
+        ba[0]=self.ID
+        ba[1]=0x06
+        ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
     def SendUpdateProgram(self):
         ba = bytearray(4)
@@ -94,11 +90,10 @@ class OptoLifespanRig:
         ba[3]=self.endByte
         self.thePort.WriteByteArray(ba)
     def GetVersionInformationString(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x07
-        ba[3]=self.endByte
+        ba = bytearray(3)
+        ba[0]=self.ID
+        ba[1]=0x07
+        ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
         result = self.thePort.Read(50)
         if(len(result)==0):
@@ -106,51 +101,43 @@ class OptoLifespanRig:
         else:
             return result.decode()
     def UpdateRemoteProgramStatus(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x09
-        ba[3]=self.endByte
-        self.thePort.WriteByteArray(ba) 
-        result = self.thePort.Read(2000)
-        if len(result) != 34:
-            print("Read more than 34 bytes: " + str(len(result)))
-            print(result)
-        else:
-            self.remoteProgram.FillProgramStatus(result)       
+        ba = bytearray(3)        
+        ba[0]=self.ID
+        ba[1]=0x09
+        ba[2]=self.endByte
+        self.thePort.WriteByteArray(ba)         
+        result = self.thePort.ReadCOBSPacket(50)        
+        decodedResult = cobs.decode(result)
+        self.remoteProgram.FillProgramStatus(decodedResult)       
     def UpdateRemoteProgramData(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x01
-        ba[3]=self.endByte
+        ba = bytearray(3)        
+        ba[0]=self.ID
+        ba[1]=0x01
+        ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
-        result = self.thePort.Read(3000)
-        if len(result)==0:
+        result = self.thePort.ReadCOBSPacket(3000)
+        decodedResult = cobs.decode(result)        
+        if (len(decodedResult)==0) or (len(decodedResult) % 9 != 0):
             return "No response"
-        if result[0]==self.startByte and result[len(result)-1]==self.endByte:
-            self.remoteProgram.FillProgramData(result)
-        else:
-            return "No response"
+        self.remoteProgram.FillProgramData(decodedResult)        
     def UpdateRemoteProgram(self):
         self.UpdateRemoteProgramData()
+        time.sleep(.5)
         self.UpdateRemoteProgramStatus() 
     def GetRemoteProgramString(self):        
         self.UpdateRemoteProgramData()
-        self.UpdateRemoteProgramStatus()
         s1 = self.remoteProgram.GetProgramStatusString()
-        s2 = self.remoteProgram.GetProgramDataString()
+        s2 = self.remoteProgram.GetProgramDataString()        
         return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
     def GetLocalProgramString(self):               
         s1 = self.localProgram.GetProgramStatusString()
         s2 = self.localProgram.GetProgramDataString()
         return "\n***Current Local Program***\n"+ s1 + "\n\n" + s2
     def GetRemoteRTCString(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x08
-        ba[3]=self.endByte
+        ba = bytearray(3)        
+        ba[0]=self.ID
+        ba[1]=0x08
+        ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
         result = self.thePort.Read(6)    
         if len(result)==0:
@@ -170,22 +157,36 @@ class OptoLifespanRig:
             ba[index+2]=tmp[index]
         self.thePort.WriteByteArray(ba)
     def UploadLocalProgram(self):
-        maxProgramSteps=100
+        self.SendClearProgram()
+        time.sleep(0.1)
+        ba = bytearray(5)    
+        ba[0]=self.ID        
+        if self.localProgram.programType == Program.ProgramType.LINEAR:
+            ba[1]=0x01
+        elif self.localProgram.programType == Program.ProgramType.LOOPING:
+            ba[1]=0x02
+        elif self.localProgram.programType == Program.ProgramType.CIRCADIAN:
+            ba[1]=0x03
+        else:
+            ba[1]=0x01
+        tmp = self.localProgram.startTime.timetuple()
+        ba[2]=tmp[0]-2000
+        ba[3]=tmp[1]
+        ba[4]=tmp[2]
+        ba[5]=tmp[3]
+        ba[6]=tmp[4]
+        ba[7]=tmp[5]
+        
+        maxProgramSteps=20
         if len(self.localProgram.fullProgramSteps) > maxProgramSteps:
             maxIndex = maxProgramSteps
         else:
             maxIndex = len(self.localProgram.fullProgramSteps)
-        self.SendClearProgram()
-        time.sleep(0.1)
-        self.SendProgramType(self.localProgram.programType)
-        time.sleep(0.1)        
-        self.SendProgramStartTime(self.localProgram.startTime)
-        time.sleep(0.1)
         for index in range(maxIndex):
-            self.SendProgramStep(self.localProgram.fullProgramSteps[index])
-            time.sleep(0.02)           
-        self.SendUpdateProgram()
-        time.sleep(0.1)
+                                  
+        
+        time.sleep(.5)
+        self.SendUpdateProgram()        
     def AreLocalAndRemoteProgramsIdentical(self):
         return self.localProgram.IsProgramIdentical(self.remoteProgram)
     def LoadLocalProgram(self,filePath):

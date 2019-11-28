@@ -53,7 +53,7 @@ if __name__=="__main__" :
     #print(theRig.GetRemoteProgramString())
 
     command="none"
-    while command != "exit":
+    while command.lower() != "exit" and command.lower() != "quit":
         commandLine=input('> ')
         command=""
         argument = ""
