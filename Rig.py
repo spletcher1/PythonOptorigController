@@ -29,30 +29,65 @@ class OptoLifespanRig:
         ba[1]=0x02
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
+        result = self.thePort.Read(1)
+        if len(result)!=1:
+            return False
+        elif result[0] != 0xFF:
+            return False
+        else:
+            return True
     def SendStopProgram(self):
         ba = bytearray(3)
         ba[0]=self.ID
         ba[1]=0x03
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
+        result = self.thePort.Read(1)
+        if len(result)!=1:
+            return False
+        elif result[0] != 0xFF:
+            return False
+        else:
+            return True
     def SendClearProgram(self):
         ba = bytearray(3)        
         ba[0]=self.ID
         ba[1]=0x04
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
+        result = self.thePort.Read(1)
+        if len(result)!=1:
+            return False
+        elif result[0] != 0xFF:
+            return False
+        else:
+            return True
     def SendSaveProgram(self):
         ba = bytearray(3)
         ba[0]=self.ID
         ba[1]=0x05
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
+        result = self.thePort.Read(1)
+        if len(result)!=1:
+            return False
+        elif result[0] != 0xFF:
+            return False
+        else:
+            return True
     def SendLoadProgram(self):
         ba = bytearray(3)
         ba[0]=self.ID
         ba[1]=0x06
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
+        result = self.thePort.Read(1)
+        if len(result)!=1:
+            return False
+        elif result[0] != 0xFF:
+            return False
+        else:
+            return True
     def SendUpdateProgram(self):
         ba = bytearray(4)
         ba[0]=self.startByte
@@ -60,6 +95,13 @@ class OptoLifespanRig:
         ba[2]=0x0C
         ba[3]=self.endByte
         self.thePort.WriteByteArray(ba)
+        result = self.thePort.Read(1)
+        if len(result)!=1:
+            return False
+        elif result[0] != 0xFF:
+            return False
+        else:
+            return True
     def GetVersionInformationString(self):
         ba = bytearray(3)
         ba[0]=self.ID
@@ -174,8 +216,22 @@ class OptoLifespanRig:
         print(len(ba))
         encodedba=encodedba+b'0'
         self.thePort.WriteByteArray(ba)
-        time.sleep(1)
-        self.SendUpdateProgram()        
+        result = self.thePort.Read(1)
+        if len(result)!=1:
+            return False
+        elif result[0] != 0xFF:
+            return False
+        else:
+            time.sleep(1)
+            self.SendUpdateProgram() 
+            result = self.thePort.Read(1)
+            if len(result)!=1:
+                return False
+            elif result[0] != 0xFF:
+                return False
+            else:
+                return True
+              
     def AreLocalAndRemoteProgramsIdentical(self):
         return self.localProgram.IsProgramIdentical(self.remoteProgram)
     def LoadLocalProgram(self,filePath):
