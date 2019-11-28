@@ -128,8 +128,6 @@ class OptoLifespanRig:
             ba[index+2]=tmp[index]
         self.thePort.WriteByteArray(ba)
     def UploadLocalProgram(self):
-        self.SendClearProgram()
-        time.sleep(0.1)
         ba = bytearray(256)    
         ba[0]=self.ID   
         ba[1]=0x0A     
@@ -173,6 +171,7 @@ class OptoLifespanRig:
 
         ba=ba[0:currentbyteindex]     
         encodedba=cobs.encode(ba)
+        print(len(ba))
         encodedba=encodedba+b'0'
         self.thePort.WriteByteArray(ba)
         time.sleep(1)
