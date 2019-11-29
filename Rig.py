@@ -89,11 +89,10 @@ class OptoLifespanRig:
         else:
             return True
     def SendUpdateProgram(self):
-        ba = bytearray(4)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        ba[2]=0x0C
-        ba[3]=self.endByte
+        ba = bytearray(3)
+        ba[0]=self.ID
+        ba[1]=0x0C
+        ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
         result = self.thePort.Read(1)
         if len(result)!=1:
@@ -108,7 +107,7 @@ class OptoLifespanRig:
         ba[1]=0x07
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
-        result = self.thePort.Read(50)
+        result = self.thePort.Read(5)
         if(len(result)==0):
             return "No response"
         else:
@@ -129,7 +128,7 @@ class OptoLifespanRig:
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
         result = self.thePort.ReadCOBSPacket(3000)
-        decodedResult = cobs.decode(result)        
+        decodedResult = cobs.decode(result)  
         if (len(decodedResult)==0) or (len(decodedResult) % 9 != 0):
             return "No response"
         self.remoteProgram.FillProgramData(decodedResult)        
@@ -138,7 +137,7 @@ class OptoLifespanRig:
         time.sleep(.5)
         self.UpdateRemoteProgramStatus() 
     def GetRemoteProgramString(self):        
-        self.UpdateRemoteProgramData()
+        self.UpdateRemoteProgram()
         s1 = self.remoteProgram.GetProgramStatusString()
         s2 = self.remoteProgram.GetProgramDataString()        
         return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
@@ -189,9 +188,10 @@ class OptoLifespanRig:
         ba[7]=tmp[4]
         ba[8]=tmp[5]
         
-        maxProgramSteps=20
+        maxProgramSteps=40
         if len(self.localProgram.fullProgramSteps) > maxProgramSteps:
             maxIndex = maxProgramSteps
+            print("Maximum steps exceeded.  Only uploading first 40.")
         else:
             maxIndex = len(self.localProgram.fullProgramSteps)
         currentbyteindex=9
@@ -212,26 +212,25 @@ class OptoLifespanRig:
             currentbyteindex+=9          
 
         ba=ba[0:currentbyteindex]     
-        encodedba=cobs.encode(ba)
-        print(len(ba))
-        encodedba=encodedba+b'0'
-        self.thePort.WriteByteArray(ba)
+        encodedba=cobs.encode(ba)        
+        barray = bytearray(encodedba)
+        barray.append(0x00)   
+        if(len(barray)>=400):
+            print("Temporary error! Bytearray too large!")
+            print("Program not uploaded.")
+            return
+        self.thePort.WriteByteArray(barray)
         result = self.thePort.Read(1)
         if len(result)!=1:
             return False
         elif result[0] != 0xFF:
             return False
         else:
-            time.sleep(1)
-            self.SendUpdateProgram() 
-            result = self.thePort.Read(1)
-            if len(result)!=1:
-                return False
-            elif result[0] != 0xFF:
-                return False
-            else:
+            time.sleep(.1)             
+            if self.SendUpdateProgram():
                 return True
-              
+            else:
+                return False             
     def AreLocalAndRemoteProgramsIdentical(self):
         return self.localProgram.IsProgramIdentical(self.remoteProgram)
     def LoadLocalProgram(self,filePath):

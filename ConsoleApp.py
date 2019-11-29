@@ -61,11 +61,15 @@ if __name__=="__main__" :
         if len(theSplit)==1:
             command = theSplit[0].strip()
             if command.lower() == "stop":
-                theRig.SendStopProgram()
-                print("Stop program signal sent.")
+                if theRig.SendStopProgram():
+                    print("Stop program signal sent and acknowledged.")
+                else:
+                    print("Stop program signal sent but not acknowledged.")                
             elif command.lower()== 'stage':
-                theRig.SendStageProgram()
-                print("Stage program signal sent.")
+                if theRig.SendStageProgram():
+                    print("Stage program signal sent and acknowledged.")
+                else :
+                    print("Stage program signal sent but not acknowledged.")
             elif command.lower()== 'get' or command.lower()== 'remote':
                 print(theRig.GetRemoteProgramString())    
                 PrintCompareTest(theRig) 
@@ -73,24 +77,35 @@ if __name__=="__main__" :
                 print(theRig.GetLocalProgramString())    
                 PrintCompareTest(theRig)                           
             elif command.lower()== 'clear':
-                theRig.SendClearProgram()
-                print("Clear program signal sent.")   
+                if theRig.SendClearProgram():
+                    print("Clear program signal sent and acknowledged.")   
+                else:
+                    print("Clear program signal sent but not acknowledged.")   
             elif command.lower()== 'save':
-                theRig.SendSaveProgram()
-                print("Save program signal sent.")   
+                if theRig.SendSaveProgram():
+                    print("Save program signal sent and acknowledged.")   
+                else:
+                    print("Save program signal sent but not acknowledged.")   
             elif command.lower()== 'load':
-                theRig.SendLoadProgram()
-                print("Load program signal sent.")   
+                if theRig.SendLoadProgram():
+                    print("Load program signal sent and acknowledged.")   
+                else:
+                    print("Load program signal sent but not acknowledged.")   
             elif command.lower()== 'firmware':                
                 print("Firmware version: "+ theRig.GetVersionInformationString())   
             elif command.lower()== 'rtc':
                 print(theRig.GetRemoteRTCString())                
             elif command.lower() == 'upload':
-                theRig.UploadLocalProgram()
+                if theRig.UploadLocalProgram():
+                    print("Upload successful and acknowledged.")
+                else :
+                    print("Upload not successful.")
                 time.sleep(1)
                 print(theRig.GetRemoteProgramString())        
                 PrintCompareTest(theRig)
             elif command.lower() == 'exit':
+                break
+            elif command.lower() == 'quit':
                 break
             else:
                 print("Command not recognized.")                          

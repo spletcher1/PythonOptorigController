@@ -186,7 +186,7 @@ class Program:
         self.totalProgramDuration = self.fullProgramSteps[len(self.fullProgramSteps)-1].elapsedDurationAtEnd.total_seconds()
         self.numSteps = len(self.fullProgramSteps)
     def FillProgramData(self, bytesData):
-        numsteps = (int)(len(bytesData)/9)
+        numsteps = (int)(len(bytesData)/9)    
         if numsteps < 1:
             return
         self.fullProgramSteps.clear()
@@ -202,7 +202,7 @@ class Program:
             tmp.elapsedDurationAtEnd = datetime.timedelta(0)
             self.fullProgramSteps.append(tmp)
             indexer+=9
-        self.FillInElapsedTimes()      
+        self.FillInElapsedTimes()           
     def LoadLocalProgram(self,filePath):
         isInBlock = False
         totalBlockIterations=1
