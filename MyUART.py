@@ -4,10 +4,7 @@ import socketserver
 import serial
 import serial.tools.list_ports
 
-class MyUART:
-    def __init__(self):        
-        self.startByte=0x40 #'@'
-        self.endByte=0x23   #'#'
+class MyUART:    
     def Open(self,port):
         self.thePort=serial.Serial(port,19200,timeout=3)        
     def Write(self,s):

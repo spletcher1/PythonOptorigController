@@ -14,6 +14,7 @@ class OptoLifespanRig:
         self.endByte=0x00   #'A'#'@'
         self.remoteProgram = Program.Program()
         self.localProgram = Program.Program()
+        self.currentErrors=0
     def GetListOfOnlineRigs(self):
         rigNumbers=range(1,20)
         results = {}
@@ -29,78 +30,49 @@ class OptoLifespanRig:
         ba[1]=0x02
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
-        result = self.thePort.Read(1)
-        if len(result)!=1:
-            return False
-        elif result[0] != 0xFF:
-            return False
-        else:
-            return True
+        return self.SeekAcknowledgment()
     def SendStopProgram(self):
         ba = bytearray(3)
         ba[0]=self.ID
         ba[1]=0x03
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
-        result = self.thePort.Read(1)
-        if len(result)!=1:
-            return False
-        elif result[0] != 0xFF:
-            return False
-        else:
-            return True
+        return self.SeekAcknowledgment()            
     def SendClearProgram(self):
         ba = bytearray(3)        
         ba[0]=self.ID
         ba[1]=0x04
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
-        result = self.thePort.Read(1)
-        if len(result)!=1:
-            return False
-        elif result[0] != 0xFF:
-            return False
-        else:
-            return True
+        return self.SeekAcknowledgment()
     def SendSaveProgram(self):
         ba = bytearray(3)
         ba[0]=self.ID
         ba[1]=0x05
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
-        result = self.thePort.Read(1)
-        if len(result)!=1:
-            return False
-        elif result[0] != 0xFF:
-            return False
-        else:
-            return True
+        return self.SeekAcknowledgment()
+    def SendClearErrors(self):
+        ba = bytearray(3)
+        ba[0]=self.ID
+        ba[1]=0x0E
+        ba[2]=self.endByte
+        self.thePort.WriteByteArray(ba)
+        return self.SeekAcknowledgment()
     def SendLoadProgram(self):
         ba = bytearray(3)
         ba[0]=self.ID
         ba[1]=0x06
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
-        result = self.thePort.Read(1)
-        if len(result)!=1:
-            return False
-        elif result[0] != 0xFF:
-            return False
-        else:
-            return True
+        return self.SeekAcknowledgment()
     def SendUpdateProgram(self):
         ba = bytearray(3)
         ba[0]=self.ID
         ba[1]=0x0C
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
-        result = self.thePort.Read(1)
-        if len(result)!=1:
-            return False
-        elif result[0] != 0xFF:
-            return False
-        else:
-            return True
+        return self.SeekAcknowledgment()
     def GetVersionInformationString(self):
         ba = bytearray(3)
         ba[0]=self.ID
@@ -119,28 +91,42 @@ class OptoLifespanRig:
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)         
         result = self.thePort.ReadCOBSPacket(50)        
-        decodedResult = cobs.decode(result)
-        self.remoteProgram.FillProgramStatus(decodedResult)       
+        decodedResult = cobs.decode(result)        
+        if (len(decodedResult)!=34):
+            return False
+        else:
+            self.remoteProgram.FillProgramStatus(decodedResult)          
+            return True    
     def UpdateRemoteProgramData(self):
         ba = bytearray(3)        
         ba[0]=self.ID
         ba[1]=0x01
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
-        result = self.thePort.ReadCOBSPacket(3000)
-        decodedResult = cobs.decode(result)  
+        result = self.thePort.ReadCOBSPacket(3000)    
+        decodedResult = cobs.decode(result)        
         if (len(decodedResult)==0) or (len(decodedResult) % 9 != 0):
-            return "No response"
-        self.remoteProgram.FillProgramData(decodedResult)        
+            return False
+        else:
+            self.remoteProgram.FillProgramData(decodedResult)        
+            return True
     def UpdateRemoteProgram(self):
-        self.UpdateRemoteProgramData()
-        time.sleep(.5)
-        self.UpdateRemoteProgramStatus() 
+        if self.UpdateRemoteProgramStatus():
+            time.sleep(.5)
+            if self.UpdateRemoteProgramData():
+                return True
+            else:
+                return False
+        else:
+            return False
+
     def GetRemoteProgramString(self):        
-        self.UpdateRemoteProgram()
-        s1 = self.remoteProgram.GetProgramStatusString()
-        s2 = self.remoteProgram.GetProgramDataString()        
-        return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
+        if self.UpdateRemoteProgram():
+            s1 = self.remoteProgram.GetProgramStatusString()
+            s2 = self.remoteProgram.GetProgramDataString()        
+            return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
+        else:
+            return "\nGet program update failed.\n"
     def GetLocalProgramString(self):               
         s1 = self.localProgram.GetProgramStatusString()
         s2 = self.localProgram.GetProgramDataString()
@@ -154,22 +140,15 @@ class OptoLifespanRig:
         result = self.thePort.Read(6)    
         if len(result)==0:
             return "No response"
-        if sum(result)>0:
+        if result[0]>5:
             rtcTime = datetime.datetime(result[0]+2000,result[1],result[2],result[3],result[4],result[5]) 
             s = "Local time on RTC: {}".format(rtcTime.strftime("%A, %B %d, %Y %H:%M:%S"))
             return s
         else:
             return "No RTC"
-    def SendProgramStep(self,programStep):
-        tmp = programStep.GetProgramStepArrayForUART()        
-        ba = bytearray(len(tmp)+2)
-        ba[0]=self.startByte
-        ba[1]=self.ID
-        for index in range(len(tmp)):
-            ba[index+2]=tmp[index]
-        self.thePort.WriteByteArray(ba)
     def UploadLocalProgram(self):
-        ba = bytearray(256)    
+        maxProgramSteps=40
+        ba = bytearray(9*maxProgramSteps+9)    
         ba[0]=self.ID   
         ba[1]=0x0A     
         if self.localProgram.programType == Program.ProgramType.LINEAR:
@@ -187,8 +166,7 @@ class OptoLifespanRig:
         ba[6]=tmp[3]
         ba[7]=tmp[4]
         ba[8]=tmp[5]
-        
-        maxProgramSteps=40
+                
         if len(self.localProgram.fullProgramSteps) > maxProgramSteps:
             maxIndex = maxProgramSteps
             print("Maximum steps exceeded.  Only uploading first 40.")
@@ -214,28 +192,69 @@ class OptoLifespanRig:
         ba=ba[0:currentbyteindex]     
         encodedba=cobs.encode(ba)        
         barray = bytearray(encodedba)
-        barray.append(0x00)   
-        if(len(barray)>=400):
-            print("Temporary error! Bytearray too large!")
-            print("Program not uploaded.")
-            return
-        self.thePort.WriteByteArray(barray)
-        result = self.thePort.Read(1)
-        if len(result)!=1:
-            return False
-        elif result[0] != 0xFF:
-            return False
+        barray.append(0x00)          
+        print("Length")
+        print(len(barray))
+        self.thePort.WriteByteArray(barray)       
+        if self.SeekAcknowledgment():
+            return True
         else:
-            time.sleep(.1)             
-            if self.SendUpdateProgram():
-                return True
-            else:
-                return False             
+            return False
     def AreLocalAndRemoteProgramsIdentical(self):
         return self.localProgram.IsProgramIdentical(self.remoteProgram)
     def LoadLocalProgram(self,filePath):
         self.localProgram.LoadLocalProgram(filePath)
-
+    def SeekAcknowledgment(self):
+        result = self.thePort.Read(3)
+        if len(result)!=3:
+            return False
+        elif result[0] != 0xFE:
+            return False
+        else:
+            self.currentErrors = result[1]
+            return True
+    def GetCurrentErrorString(self):
+        s="\n        ***Current Errors***\n\n"
+        if self.currentErrors & 0x01:
+            s+="            UART frame error: True\n"
+        else:
+            s+="            UART frame error: False\n"
+        if self.currentErrors & 0x02:
+            s+="  UART buffer overflow error: True\n"
+        else:
+            s+="  UART buffer overflow error: False\n"
+        if self.currentErrors & 0x04:
+            s+="UART register overflow error: True\n"
+        else:
+            s+="UART register overflow error: False\n"
+        if self.currentErrors & 0x08:
+            s+="     Command not found error: True\n"
+        else:
+            s+="     Command not found error: False\n"
+        if self.currentErrors & 0x10:
+            s+="        Too many steps error: True\n"
+        else:
+            s+="        Too many steps error: False\n"
+        if self.currentErrors & 0x20:
+            s+="           I2C timeout error: True\n"
+        else:
+            s+="           I2C timeout error: False\n"
+        if self.currentErrors & 0x40:
+            s+="                   Bitflag 1: True\n"
+        else:
+            s+="                   Bitflag 1: False\n"
+        if self.currentErrors & 0x40:
+            s+="                   Bitflag 2: True\n"
+        else:
+            s+="                   Bitflag 2: False\n"
+        return s
+    def GetCurrentErrors(self):
+        ba = bytearray(3)
+        ba[0]=self.ID
+        ba[1]=0x0D
+        ba[2]=self.endByte
+        self.thePort.WriteByteArray(ba)
+        return self.SeekAcknowledgment()
 
 if __name__=="__main__" :
     theRig = OptoLifespanRig(14)    

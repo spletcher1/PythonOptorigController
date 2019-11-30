@@ -39,6 +39,11 @@ def PrintCompareTest(optoRig):
     else:
         print("Local and remote programs are different.")
 
+def CheckForErrors(optoRig,updateFirst):
+    if updateFirst==True:
+        optoRig.GetCurrentErrors()
+    if optoRig.currentErrors != 0:
+        print(theRig.GetCurrentErrorString())    
 
 
 if __name__=="__main__" :
@@ -64,45 +69,62 @@ if __name__=="__main__" :
                 if theRig.SendStopProgram():
                     print("Stop program signal sent and acknowledged.")
                 else:
-                    print("Stop program signal sent but not acknowledged.")                
+                    print("Stop program signal sent but not acknowledged.")    
+                CheckForErrors(theRig,False)            
             elif command.lower()== 'stage':
                 if theRig.SendStageProgram():
                     print("Stage program signal sent and acknowledged.")
                 else :
                     print("Stage program signal sent but not acknowledged.")
+                CheckForErrors(theRig,False)
             elif command.lower()== 'get' or command.lower()== 'remote':
                 print(theRig.GetRemoteProgramString())    
                 PrintCompareTest(theRig) 
+                CheckForErrors(theRig,True)
             elif command.lower()== 'local':
                 print(theRig.GetLocalProgramString())    
-                PrintCompareTest(theRig)                           
+                PrintCompareTest(theRig)                                           
             elif command.lower()== 'clear':
                 if theRig.SendClearProgram():
                     print("Clear program signal sent and acknowledged.")   
                 else:
                     print("Clear program signal sent but not acknowledged.")   
+                CheckForErrors(theRig,False)
             elif command.lower()== 'save':
                 if theRig.SendSaveProgram():
                     print("Save program signal sent and acknowledged.")   
                 else:
                     print("Save program signal sent but not acknowledged.")   
+                CheckForErrors(theRig,False)
             elif command.lower()== 'load':
                 if theRig.SendLoadProgram():
                     print("Load program signal sent and acknowledged.")   
                 else:
-                    print("Load program signal sent but not acknowledged.")   
+                    print("Load program signal sent but not acknowledged.")  
+                CheckForErrors(theRig,False) 
             elif command.lower()== 'firmware':                
                 print("Firmware version: "+ theRig.GetVersionInformationString())   
+                CheckForErrors(theRig,True)
             elif command.lower()== 'rtc':
-                print(theRig.GetRemoteRTCString())                
+                print(theRig.GetRemoteRTCString())   
+                CheckForErrors(theRig,True)  
+            elif command.lower()== 'errors':
+                print(theRig.GetCurrentErrorString())             
+            elif command.lower()== 'clearerrors':
+                if theRig.SendClearErrors():
+                    print("Clear errors signal sent and acknowledged.")   
+                else:
+                    print("Clear errors signal sent but not acknowledged.")  
+                print(theRig.GetCurrentErrorString())                 
             elif command.lower() == 'upload':
                 if theRig.UploadLocalProgram():
                     print("Upload successful and acknowledged.")
+                    time.sleep(2)
+                    print(theRig.GetRemoteProgramString())        
+                    PrintCompareTest(theRig)
+                    CheckForErrors(theRig,True) 
                 else :
-                    print("Upload not successful.")
-                time.sleep(1)
-                print(theRig.GetRemoteProgramString())        
-                PrintCompareTest(theRig)
+                    print("Upload not successful.")               
             elif command.lower() == 'exit':
                 break
             elif command.lower() == 'quit':
@@ -115,7 +137,7 @@ if __name__=="__main__" :
             if command.lower() == 'load':                
                 theRig.LoadLocalProgram(argument)
                 print(theRig.GetLocalProgramString())                
-                PrintCompareTest(theRig)
+                PrintCompareTest(theRig)            
             else:
                 print("Command not recognized.")                
         else:

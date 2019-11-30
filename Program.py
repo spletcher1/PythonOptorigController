@@ -117,11 +117,14 @@ class Program:
             s+="\n\n Total program steps: " + str(self.numSteps) + "\n"           
         return s
     def GetProgramDataString(self):
-        s=""
-        if self.numSteps < 1: return s
-        for i in range(self.numSteps):
-            s+=self.fullProgramSteps[i].GetProgramStepString() +"\n"
-        return s
+        s=""        
+        if self.numSteps < 1:
+            s = "No program steps defined.\n\n"
+            return s
+        else:
+            for i in range(self.numSteps):
+                s+=self.fullProgramSteps[i].GetProgramStepString() +"\n"
+            return s
     def FillProgramStatus(self,bytesData):
         if bytesData[0]==1:
             self.programStatus = ProgramStatus.NOTLOADED
@@ -186,10 +189,12 @@ class Program:
         self.totalProgramDuration = self.fullProgramSteps[len(self.fullProgramSteps)-1].elapsedDurationAtEnd.total_seconds()
         self.numSteps = len(self.fullProgramSteps)
     def FillProgramData(self, bytesData):
-        numsteps = (int)(len(bytesData)/9)    
-        if numsteps < 1:
-            return
         self.fullProgramSteps.clear()
+        numsteps = (int)(len(bytesData)/9)            
+        if numsteps < 1:
+            return 
+        if numsteps ==1 and sum(bytesData)==9:
+            return     
         indexer=0
         for i in range(numsteps):           
             tmp = ProgramStep()
@@ -207,7 +212,11 @@ class Program:
         isInBlock = False
         totalBlockIterations=1
         tmp=""
-        readFile = open(filePath,'r')
+        try:
+            readFile = open(filePath,'r')
+        except:
+            print("\nFile open error. Program not loaded.\n")
+            return
         program=readFile.readlines()
         readFile.close()
         self.ClearProgram()
