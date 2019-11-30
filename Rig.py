@@ -90,13 +90,15 @@ class OptoLifespanRig:
         ba[1]=0x09
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)         
-        result = self.thePort.ReadCOBSPacket(50)        
-        decodedResult = cobs.decode(result)        
-        if (len(decodedResult)!=34):
-            return False
-        else:
-            self.remoteProgram.FillProgramStatus(decodedResult)          
-            return True    
+        result = self.thePort.ReadCOBSPacket(50)   
+        decodedResult = cobs.decode(result)  
+        if (len(decodedResult)!=35):
+            return False      
+        if(decodedResult[0]!=0xFE):
+            return False  
+        decodedResult2 = decodedResult[1:]           
+        self.remoteProgram.FillProgramStatus(decodedResult2)          
+        return True    
     def UpdateRemoteProgramData(self):
         ba = bytearray(3)        
         ba[0]=self.ID
@@ -104,11 +106,16 @@ class OptoLifespanRig:
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
         result = self.thePort.ReadCOBSPacket(3000)    
-        decodedResult = cobs.decode(result)        
-        if (len(decodedResult)==0) or (len(decodedResult) % 9 != 0):
+        decodedResult = cobs.decode(result) 
+        if (len(decodedResult)==0):
+            return False      
+        if(decodedResult[0]!=0xFE):
+            return False  
+        decodedResult2 = decodedResult[1:]
+        if (len(decodedResult2) % 9 != 0):
             return False
         else:
-            self.remoteProgram.FillProgramData(decodedResult)        
+            self.remoteProgram.FillProgramData(decodedResult2)        
             return True
     def UpdateRemoteProgram(self):
         if self.UpdateRemoteProgramStatus():
