@@ -18,11 +18,13 @@ class OptoLifespanRig:
     def GetListOfOnlineRigs(self):
         rigNumbers=range(1,20)
         results = {}
+        self.thePort.SetShortTimeout()
         for num in rigNumbers:
             self.ID = num
             tmp=self.GetVersionInformationString()
             if tmp!="No response" :
                 results[num] = tmp
+        self.thePort.ResetTimeout()
         return results
     def SendStageProgram(self):
         ba = bytearray(3)

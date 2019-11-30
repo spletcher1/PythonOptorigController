@@ -21,7 +21,7 @@ def ChooseSerialPort(optoRig):
 def ChooseOptoRig(optoRig):   
     print("Searching for opto control boards...", end="",flush=True)
     tmp = optoRig.GetListOfOnlineRigs()
-    print("done.",flush=True)
+    print("done.\n",flush=True)
     while True:
         print('Please choose available serial optorig:')
         for num in list(tmp):
@@ -47,16 +47,12 @@ def CheckForErrors(optoRig,updateFirst):
 
 
 if __name__=="__main__" :
+    version ="2.0.x"
     theRig = Rig.OptoLifespanRig(1)
-    #ChooseSerialPort(theRig)
-    #ChooseOptoRig(theRig)    
+    ChooseSerialPort(theRig)
+    ChooseOptoRig(theRig)    
     theRig.thePort.Open('/dev/ttyUSB0')
     
-    #theRig.LoadLocalProgram("TestProgram.txt")
-    #print(theRig.GetLocalProgramString())
-    #theRig.UploadLocalProgram()
-    #print(theRig.GetRemoteProgramString())
-
     command="none"
     while command.lower() != "exit" and command.lower() != "quit":
         commandLine=input('> ')
@@ -102,8 +98,9 @@ if __name__=="__main__" :
                 else:
                     print("Load program signal sent but not acknowledged.")  
                 CheckForErrors(theRig,False) 
-            elif command.lower()== 'firmware':                
+            elif command.lower()== 'firmware' or command.lower()=="versions":                
                 print("Firmware version: "+ theRig.GetVersionInformationString())   
+                print("Software version: "+ version)   
                 CheckForErrors(theRig,True)
             elif command.lower()== 'rtc':
                 print(theRig.GetRemoteRTCString())   
@@ -125,10 +122,10 @@ if __name__=="__main__" :
                     CheckForErrors(theRig,True) 
                 else :
                     print("Upload not successful.")               
-            elif command.lower() == 'exit':
+            elif command.lower() == 'exit' or command.lower()=='quit':
                 break
-            elif command.lower() == 'quit':
-                break
+            elif command.lower() == 'changeid':
+                ChooseOptoRig(theRig)                 
             else:
                 print("Command not recognized.")                          
         elif len(theSplit)==2:
@@ -142,18 +139,3 @@ if __name__=="__main__" :
                 print("Command not recognized.")                
         else:
             print("Command not recognized.")            
-        
-
-
-    #theRig.localProgram.LoadLocalProgram("TestProgram3.txt")
-    #theRig.UploadLocalProgram()
-    #time.sleep(1)
-    #print(theRig.GetRemoteProgramString())
-    #print(theRig.localProgram.IsProgramIdentical(theRig.remoteProgram))
-
-    #theRig.thePort.Open('/dev/ttyUSB0')
-    #print(theRig.GetVersionInformationString())
-    #print(theRig.GetRemoteProgramString())
-    #theRig.SendProgramStep(theRig.remoteProgram.fullProgramSteps[0])
-    #print(theRig.GetRemoteProgramString())
-    
