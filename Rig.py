@@ -22,8 +22,9 @@ class OptoLifespanRig:
         for num in rigNumbers:
             self.ID = num
             tmp=self.GetVersionInformationString()
-            if tmp!="No response" :
+            if tmp!="No response" :              
                 results[num] = tmp
+            time.sleep(0.1)
         self.thePort.ResetTimeout()
         return results
     def SendStageProgram(self):
@@ -151,7 +152,7 @@ class OptoLifespanRig:
             return "No response"
         if result[0]>5:
             rtcTime = datetime.datetime(result[0]+2000,result[1],result[2],result[3],result[4],result[5]) 
-            s = "Local time on RTC: {}".format(rtcTime.strftime("%A, %B %d, %Y %H:%M:%S"))
+            s = rtcTime.strftime("%A, %B %d, %Y %H:%M:%S")
             return s
         else:
             return "No RTC"
@@ -201,9 +202,7 @@ class OptoLifespanRig:
         ba=ba[0:currentbyteindex]     
         encodedba=cobs.encode(ba)        
         barray = bytearray(encodedba)
-        barray.append(0x00)          
-        print("Length")
-        print(len(barray))
+        barray.append(0x00)                 
         self.thePort.WriteByteArray(barray)       
         if self.SeekAcknowledgment():
             return True
@@ -249,10 +248,10 @@ class OptoLifespanRig:
         else:
             s+="           I2C timeout error: False\n"
         if self.currentErrors & 0x40:
-            s+="                   Bitflag 1: True\n"
+            s+="   RTC datetime format error: True\n"
         else:
-            s+="                   Bitflag 1: False\n"
-        if self.currentErrors & 0x40:
+            s+="   RTC datetime format error: False\n"
+        if self.currentErrors & 0x80:
             s+="                   Bitflag 2: True\n"
         else:
             s+="                   Bitflag 2: False\n"
@@ -264,6 +263,30 @@ class OptoLifespanRig:
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
         return self.SeekAcknowledgment()
+    def SendRTCSet(self,timeString):        
+        try:
+            tmp=datetime.datetime.strptime(timeString,"%m/%d/%Y %H:%M:%S")
+        except:
+            return False
+        ba = bytearray(8)        
+        ba[0]=self.ID
+        ba[1]=0x0F
+        ba[2]=tmp.year-2000
+        ba[3]=tmp.month
+        ba[4]=tmp.day
+        ba[5]=tmp.hour
+        ba[6]=tmp.minute
+        ba[7]=tmp.second
+        encodedba=cobs.encode(ba)            
+        barray = bytearray(encodedba)
+        barray.append(0x00)          
+        self.thePort.WriteByteArray(barray)       
+        if self.SeekAcknowledgment():
+            return True
+        else:
+            return False
+        
+        
 
 if __name__=="__main__" :
     theRig = OptoLifespanRig(14)    

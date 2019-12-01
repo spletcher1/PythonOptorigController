@@ -1,0 +1,3 @@
+addModuleBaudrate=19200
+addModulePortName=/dev/ttyUSB0
+eclipse.preferences.version=1

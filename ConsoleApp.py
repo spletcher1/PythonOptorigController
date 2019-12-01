@@ -2,7 +2,11 @@ import Rig
 import MyUART
 import Program
 import time
+import datetime
 
+
+theRig = Rig.OptoLifespanRig(1)
+version ="2.0.x"
 
 def ChooseSerialPort(optoRig):
     while True:
@@ -17,7 +21,6 @@ def ChooseSerialPort(optoRig):
             break
         else:
             print("Invalid choice! Try again.\n")
-
 def ChooseOptoRig(optoRig):   
     print("Searching for opto control boards...", end="",flush=True)
     tmp = optoRig.GetListOfOnlineRigs()
@@ -32,25 +35,135 @@ def ChooseOptoRig(optoRig):
             break
         else:
             print("Invalid choice! Try again.\n")    
-
 def PrintCompareTest(optoRig):
     if optoRig.AreLocalAndRemoteProgramsIdentical():
         print("Local and remote programs are identical.")
     else:
         print("Local and remote programs are different.")
-
 def CheckForErrors(optoRig,updateFirst):
     if updateFirst==True:
         optoRig.GetCurrentErrors()
     if optoRig.currentErrors != 0:
-        print(theRig.GetCurrentErrorString())    
+        print(optoRig.GetCurrentErrorString())    
 
-def main():
-    version ="2.0.x"
-    theRig = Rig.OptoLifespanRig(1)
-    ChooseSerialPort(theRig)
-    ChooseOptoRig(theRig)        
+def StopCommand():
+    if theRig.SendStopProgram():
+        print("Stop program signal sent and acknowledged.")
+    else:
+        print("Stop program signal sent but not acknowledged.")    
+    CheckForErrors(theRig,False)   
+def StageCommand():
+    if theRig.SendStageProgram():
+        print("Stage program signal sent and acknowledged.")
+    else :
+        print("Stage program signal sent but not acknowledged.")
+    CheckForErrors(theRig,False)
+def GetCommand():
+    print(theRig.GetRemoteProgramString())    
+    PrintCompareTest(theRig) 
+    CheckForErrors(theRig,True)
+def LocalCommand():
+    print(theRig.GetLocalProgramString())    
+    PrintCompareTest(theRig) 
+def ClearCommand():
+    if theRig.SendClearProgram():
+        print("Clear program signal sent and acknowledged.")   
+    else:
+        print("Clear program signal sent but not acknowledged.")   
+    CheckForErrors(theRig,False)
+def SaveCommand():
+    if theRig.SendSaveProgram():
+        print("Save program signal sent and acknowledged.")   
+    else:
+        print("Save program signal sent but not acknowledged.")   
+    CheckForErrors(theRig,False)
+def LoadCommand():
+    if theRig.SendLoadProgram():
+        print("Load program signal sent and acknowledged.")   
+    else:
+        print("Load program signal sent but not acknowledged.")  
+    CheckForErrors(theRig,False)     
+def FirmwareCommand():
+    print("Firmware version: "+ theRig.GetVersionInformationString())   
+    print("Software version: "+ version)   
+    CheckForErrors(theRig,True)    
+def TimesCommand():
+    s = "\n   Local time on rig: {}".format(theRig.GetRemoteRTCString())
+    s+= "\nLocal time on master: {}\n".format(datetime.datetime.now().strftime("%A, %B %d, %Y %H:%M:%S"))
+    print(s)   
+    CheckForErrors(theRig,True)  
+def ErrorsCommand():
+    print(theRig.GetCurrentErrorString())   
+def SetTimeCommand1Arg():
+    s=datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+    if theRig.SendRTCSet(s):                    
+        print("New datetime sent and acknowledged.")
+        s = "\n   Local time on rig: {}".format(theRig.GetRemoteRTCString())
+        s+= "\nLocal time on master: {}\n".format(datetime.datetime.now().strftime("%A, %B %d, %Y %H:%M:%S"))
+        print(s)   
+        CheckForErrors(theRig,True)  
+    else:
+        print("Problem sending new date and time. Check your formatting.")
+def ClearErrorsCommand():
+    if theRig.SendClearErrors():
+        print("Clear errors signal sent and acknowledged.")   
+    else:
+        print("Clear errors signal sent but not acknowledged.")  
+    print(theRig.GetCurrentErrorString())      
+def UploadCommand():
+    if theRig.UploadLocalProgram():
+        print("Upload successful and acknowledged.")
+        time.sleep(.5)
+        print(theRig.GetRemoteProgramString())        
+        PrintCompareTest(theRig)
+        CheckForErrors(theRig,True) 
+    else :
+        print("Upload not successful.")               
+def ChangeIDCommand():
+    ChooseOptoRig(theRig) 
+def LoadLocalCommand(arg1):
+    theRig.LoadLocalProgram(arg1)
+    print(theRig.GetLocalProgramString())                
+    PrintCompareTest(theRig)   
+def SetTimeCommand2Arg(argument1,argument2):
+    s = argument1 +" "+argument2                              
+    if theRig.SendRTCSet(s):                    
+        print("New datetime sent and acknowledged.")
+        s = "\n   Local time on rig: {}".format(theRig.GetRemoteRTCString())
+        s+= "\nLocal time on master: {}\n".format(datetime.datetime.now().strftime("%A, %B %d, %Y %H:%M:%S"))
+        print(s)   
+        CheckForErrors(theRig,True)  
+    else:
+        print("Problem sending new date and time. Check your formatting.")   
+def HelpCommand():
     
+    print("\n\n  *** Available Commands (case insensitive) ***\n\n")
+    print("            'Get' or 'Remote': Query and print currently loaded remote program.")
+    print("                      'Stage': Stage currently loaded remote program.")
+    print("                       'Stop': Stop/unstage currently loaded remote program.")    
+    print("                       'Load': Load remote program from remote storage.")
+    print("                       'Save': Save currently loaded remote program to remote storage.")
+    print("                      'Clear': Remove currently loaded remote program.\n")
+    
+    print("              'Load filename': Load local program named \'filename\' to local device.")
+    print("                      'Local': Print the currently loaded local program.")
+    print("                     'Upload': Upload the currently loaded local program to the remote device.\n")
+    
+    
+    print("     'Firmware' or 'Versions': Print the current versions of remote and local firmware/software.")
+    print("                      'Times': Print the current time values on remote and local devices.")
+    print("                     'Errors': Update and print the flagged errors from the remote device.\n")
+    
+    print("                    'Settime': Set the remote time to the current time on local device.")
+    print("'Settime MM/DD/YYYY HH:MM:SS': Set the remote time to the given time.\n")
+    
+    print("                   'ChangeID': Change the ID of the currently targeted opto control board.\n")
+    
+    print("             'Exit' or 'Quit': Quit the app.\n\n")
+
+def main():        
+    ChooseSerialPort(theRig)
+    ChooseOptoRig(theRig)            
     command="none"
     while command.lower() != "exit" and command.lower() != "quit":
         commandLine=input('> ')
@@ -60,79 +173,52 @@ def main():
         if len(theSplit)==1:
             command = theSplit[0].strip()
             if command.lower() == "stop":
-                if theRig.SendStopProgram():
-                    print("Stop program signal sent and acknowledged.")
-                else:
-                    print("Stop program signal sent but not acknowledged.")    
-                CheckForErrors(theRig,False)            
+                StopCommand()            
             elif command.lower()== 'stage':
-                if theRig.SendStageProgram():
-                    print("Stage program signal sent and acknowledged.")
-                else :
-                    print("Stage program signal sent but not acknowledged.")
-                CheckForErrors(theRig,False)
+                StageCommand()
             elif command.lower()== 'get' or command.lower()== 'remote':
-                print(theRig.GetRemoteProgramString())    
-                PrintCompareTest(theRig) 
-                CheckForErrors(theRig,True)
+                GetCommand()
             elif command.lower()== 'local':
-                print(theRig.GetLocalProgramString())    
-                PrintCompareTest(theRig)                                           
+                LocalCommand()                                    
             elif command.lower()== 'clear':
-                if theRig.SendClearProgram():
-                    print("Clear program signal sent and acknowledged.")   
-                else:
-                    print("Clear program signal sent but not acknowledged.")   
-                CheckForErrors(theRig,False)
+                ClearCommand()
             elif command.lower()== 'save':
-                if theRig.SendSaveProgram():
-                    print("Save program signal sent and acknowledged.")   
-                else:
-                    print("Save program signal sent but not acknowledged.")   
-                CheckForErrors(theRig,False)
+                SaveCommand()
             elif command.lower()== 'load':
-                if theRig.SendLoadProgram():
-                    print("Load program signal sent and acknowledged.")   
-                else:
-                    print("Load program signal sent but not acknowledged.")  
-                CheckForErrors(theRig,False) 
+                LoadCommand()
             elif command.lower()== 'firmware' or command.lower()=="versions":                
-                print("Firmware version: "+ theRig.GetVersionInformationString())   
-                print("Software version: "+ version)   
-                CheckForErrors(theRig,True)
-            elif command.lower()== 'rtc':
-                print(theRig.GetRemoteRTCString())   
-                CheckForErrors(theRig,True)  
+                FirmwareCommand()
+            elif command.lower()== 'times':
+                TimesCommand()
             elif command.lower()== 'errors':
-                print(theRig.GetCurrentErrorString())             
+                ErrorsCommand()
+            elif command.lower()=='settime':
+                SetTimeCommand1Arg()
             elif command.lower()== 'clearerrors':
-                if theRig.SendClearErrors():
-                    print("Clear errors signal sent and acknowledged.")   
-                else:
-                    print("Clear errors signal sent but not acknowledged.")  
-                print(theRig.GetCurrentErrorString())                 
+                ClearErrorsCommand()
             elif command.lower() == 'upload':
-                if theRig.UploadLocalProgram():
-                    print("Upload successful and acknowledged.")
-                    time.sleep(2)
-                    print(theRig.GetRemoteProgramString())        
-                    PrintCompareTest(theRig)
-                    CheckForErrors(theRig,True) 
-                else :
-                    print("Upload not successful.")               
+                UploadCommand()
             elif command.lower() == 'exit' or command.lower()=='quit':
                 break
             elif command.lower() == 'changeid':
-                ChooseOptoRig(theRig)                 
+                ChangeIDCommand()  
+            elif command.lower() == 'help':
+                HelpCommand()                  
             else:
                 print("Command not recognized.")                          
         elif len(theSplit)==2:
             command = theSplit[0].strip()
             argument = theSplit[1].strip()
             if command.lower() == 'load':                
-                theRig.LoadLocalProgram(argument)
-                print(theRig.GetLocalProgramString())                
-                PrintCompareTest(theRig)            
+                LoadLocalCommand(argument)      
+            else:
+                print("Command not recognized.")                
+        elif len(theSplit)==3:
+            command = theSplit[0].strip()
+            argument1 = theSplit[1].strip()
+            argument2 = theSplit[2].strip()
+            if command.lower() == 'settime':  
+                SetTimeCommand2Arg(argument1,argument2)
             else:
                 print("Command not recognized.")                
         else:
