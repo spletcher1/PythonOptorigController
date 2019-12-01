@@ -45,13 +45,11 @@ def CheckForErrors(optoRig,updateFirst):
     if optoRig.currentErrors != 0:
         print(theRig.GetCurrentErrorString())    
 
-
-if __name__=="__main__" :
+def main():
     version ="2.0.x"
     theRig = Rig.OptoLifespanRig(1)
     ChooseSerialPort(theRig)
-    ChooseOptoRig(theRig)    
-    theRig.thePort.Open('/dev/ttyUSB0')
+    ChooseOptoRig(theRig)        
     
     command="none"
     while command.lower() != "exit" and command.lower() != "quit":
@@ -138,4 +136,8 @@ if __name__=="__main__" :
             else:
                 print("Command not recognized.")                
         else:
-            print("Command not recognized.")            
+            print("Command not recognized.")      
+
+if __name__=="__main__" :
+    main()
+         
