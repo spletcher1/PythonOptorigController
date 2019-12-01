@@ -1,0 +1,2 @@
+1.  add help command that prints all available commands
+2. add function to allow user to set the RTC
