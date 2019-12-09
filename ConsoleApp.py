@@ -15,6 +15,7 @@ def ChooseSerialPort(optoRig):
         index=1
         for p in ports:
             print('  {:d}. {}'.format(index,p))
+            index=index+1
         choice=int(input('> '))-1
         if choice>=0 and choice < len(ports):
             optoRig.thePort.Open(ports[choice])
