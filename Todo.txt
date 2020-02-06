@@ -1,3 +1,0 @@
-1. add help command that prints all available commands: DONE
-2. add function to allow user to set the RTC: DONE
-3. determine if there is a simple reason why get fails to work ocassionally. THIS IS AN XBEE PROBLEM.* CODE IS OKAY.

@@ -1,0 +1,26 @@
+Optocontroller command sequence to ensure your program is properly loaded and saved on 
+the remote controller.
+
+1)	(Follow steps to locate and connect to your remote controller)
+
+2)	versions (check to ensure software and firmware versions are the same)
+
+3)	times (check to make sure local and remote times are the same or close enough. If yes, goto step 4)
+        a.  settime (to set the remote time to the current local time)
+
+4)	load filename.txt (loads filename.txt from same folder into the local software)
+
+5)	get (downloads current program that is in RAM on controller and compares with local program)
+
+6)	upload (uploads local program to replace the program currently on the controller RAM)
+
+7)	get (download the program you just uploaded to controller and make sure it is identical with the local program)
+8)	save (saves the program you just uploaded to the controller RAM onto its persistent storage (EEPROM/hard drive).  This is required so that your program automatically loads when the controller is powered up.)
+
+(steps 6, 7, and 8 are verification steps to make sure your program will load on power up)
+
+9)	clear (this will clear your program out of the controller RAM)
+
+10)	load (this will load the program currently on the controller EEPROM/hard drive into controller RAM)
+
+11)	get (this will download that program in RAM to your local computer and compare it to the local program.  If identical, then you are sure that your program has been uploaded correctly and that it is saved to EEPROM so that it will work when you move it to the incubator or if power is temporarily lost).

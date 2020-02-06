@@ -217,11 +217,12 @@ class Program:
         except:
             print("\nFile open error. Program not loaded.\n")
             return
+        print("hi")
         program=readFile.readlines()
         readFile.close()
         self.ClearProgram()
         for i in range(len(program)):
-            aline = program[i].strip()
+            aline = program[i].strip()           
             if aline[0]=='#':
                 continue
             if aline[0]=='[' and aline.find(']') != -1:
