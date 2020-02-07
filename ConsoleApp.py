@@ -119,7 +119,13 @@ def UploadCommand():
         PrintCompareTest(theRig)
         CheckForErrors(theRig,True) 
     else :
-        print("Upload not successful.")               
+        print("Upload not successful.")       
+def ProtocolCommand():
+    f=file.open("Protocol.txt","r")
+    l=file.readlines()
+    for ll in l:
+        print(l)
+    print("\n")
 def ChangeIDCommand():
     ChooseOptoRig(theRig) 
 def LoadLocalCommand(arg1):
@@ -154,11 +160,13 @@ def HelpCommand():
     print("     'Firmware' or 'Versions': Print the current versions of remote and local firmware/software.")
     print("                      'Times': Print the current time values on remote and local devices.")
     print("                     'Errors': Update and print the flagged errors from the remote device.\n")
+    print("                'ClearErrors': Resets error flags on the remote device.\n")
     
     print("                    'Settime': Set the remote time to the current time on local device.")
     print("'Settime MM/DD/YYYY HH:MM:SS': Set the remote time to the given time.\n")
     
     print("                   'ChangeID': Change the ID of the currently targeted opto control board.\n")
+    print("                   'Protocol': Print simple protocol for uploading your program.\n")
     
     print("             'Exit' or 'Quit': Quit the app.\n\n")
 
@@ -201,8 +209,10 @@ def main():
                 UploadCommand()
             elif command.lower() == 'exit' or command.lower()=='quit':
                 break
-            elif command.lower() == 'changeid':
+            elif command.lower() == 'changeid':                
                 ChangeIDCommand()  
+            elif command.lower() == 'protocol':
+                ProtocolCommand() 
             elif command.lower() == 'help':
                 HelpCommand()                  
             else:
