@@ -1,4 +1,0 @@
-ProgramType: Looping
-StartTime: 11/29/2019 18:00:05
-Interval:1,45,50,1234
-Interval:0,45,50,1234
