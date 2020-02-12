@@ -1,6 +1,7 @@
 ProgramType: Looping
+StartTime: 22:18:00
 [BeginBlock]
-Iterations: 3
+Iterations: 15
 Interval:1,45,50,2
 Interval:0,45,50,2
 [EndBlock]

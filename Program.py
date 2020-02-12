@@ -117,10 +117,14 @@ class Program:
             s+="\n\n Total program steps: " + str(self.numSteps) + "\n"           
         return s
     def GetProgramDataString(self):
-        s=""
-        for i in range(self.numSteps):
-            s+=self.fullProgramSteps[i].GetProgramStepString() +"\n"
-        return s
+        s=""        
+        if self.numSteps < 1:
+            s = "No program steps defined.\n\n"
+            return s
+        else:
+            for i in range(self.numSteps):
+                s+=self.fullProgramSteps[i].GetProgramStepString() +"\n"
+            return s
     def FillProgramStatus(self,bytesData):
         if bytesData[0]==1:
             self.programStatus = ProgramStatus.NOTLOADED
@@ -142,7 +146,6 @@ class Program:
         else:
             self.programType = ProgramType.NONE
 
-        print(bytesData)
         if(bytesData[2]+bytesData[3]+bytesData[4]+bytesData[5]+bytesData[6]+bytesData[7]==0):
             self.startTime = datetime.datetime(1,1,1)
         else:           
@@ -186,32 +189,40 @@ class Program:
         self.totalProgramDuration = self.fullProgramSteps[len(self.fullProgramSteps)-1].elapsedDurationAtEnd.total_seconds()
         self.numSteps = len(self.fullProgramSteps)
     def FillProgramData(self, bytesData):
-        theSplit = str(bytesData).split(',')
-        numsteps = (int)((len(theSplit)-2)/5)
-        if numsteps < 1:
-            return
         self.fullProgramSteps.clear()
-        for i in range(numsteps):
+        numsteps = (int)(len(bytesData)/9)            
+        if numsteps < 1:
+            return 
+        if numsteps ==1 and sum(bytesData)==9:
+            return     
+        indexer=0
+        for i in range(numsteps):           
             tmp = ProgramStep()
             tmp.stepNumber = i+1
-            tmp.lightsOn = int(theSplit[i*5+2])
-            tmp.frequency = int(theSplit[i*5+3])
-            tmp.pulseWidth = int(theSplit[i*5+4])
-            tmp.duration = int(theSplit[i*5+5])
+            tmp.lightsOn = int(bytesData[indexer])
+            tmp.frequency = int(bytesData[indexer+1]<<8) + int(bytesData[indexer+2])
+            tmp.pulseWidth = int(bytesData[indexer+3]<<8) + int(bytesData[indexer+4])
+            tmp.duration = int(bytesData[indexer+5]<<24) + int(bytesData[indexer+6]<<16) + int(bytesData[indexer+7]<<8) +int(bytesData[indexer+8])
             tmp.time = datetime.timedelta(seconds=tmp.duration)
             tmp.elapsedDurationAtEnd = datetime.timedelta(0)
             self.fullProgramSteps.append(tmp)
-        self.FillInElapsedTimes()      
+            indexer+=9
+        self.FillInElapsedTimes()           
     def LoadLocalProgram(self,filePath):
         isInBlock = False
         totalBlockIterations=1
         tmp=""
-        readFile = open(filePath,'r')
+        try:
+            readFile = open(filePath,'r')
+        except:
+            print("\nFile open error. Program not loaded.\n")
+            return
+        print("hi")
         program=readFile.readlines()
         readFile.close()
         self.ClearProgram()
         for i in range(len(program)):
-            aline = program[i].strip()
+            aline = program[i].strip()           
             if aline[0]=='#':
                 continue
             if aline[0]=='[' and aline.find(']') != -1:
