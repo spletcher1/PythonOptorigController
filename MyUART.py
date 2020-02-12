@@ -30,3 +30,7 @@ class MyUART:
         for p in ports:
             available_ports.append(p.device)
         return available_ports    
+
+if __name__=="__main__" :
+    tmp = MyUART()
+    print(tmp.GetAvailablePorts())

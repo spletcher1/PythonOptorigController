@@ -3,10 +3,10 @@ import MyUART
 import Program
 import time
 import datetime
-
+import sys
 
 theRig = Rig.OptoLifespanRig(1)
-version ="2.0.x"
+version ="2.5.0"
 
 def ChooseSerialPort(optoRig):
     while True:
@@ -26,6 +26,9 @@ def ChooseOptoRig(optoRig):
     print("Searching for opto control boards...", end="",flush=True)
     tmp = optoRig.GetListOfOnlineRigs()
     print("done.\n",flush=True)
+    if(len(tmp)==0):
+        print("No rigs found.\n")
+        sys.exit()
     while True:
         print('Please choose available serial optorig:')
         for num in list(tmp):
@@ -121,10 +124,10 @@ def UploadCommand():
     else :
         print("Upload not successful.")       
 def ProtocolCommand():
-    f=file.open("Protocol.txt","r")
-    l=file.readlines()
+    f=open("Protocol.txt","r")
+    l=f.readlines()
     for ll in l:
-        print(l)
+        print(ll)
     print("\n")
 def ChangeIDCommand():
     ChooseOptoRig(theRig) 
@@ -208,7 +211,7 @@ def main():
             elif command.lower() == 'upload':
                 UploadCommand()
             elif command.lower() == 'exit' or command.lower()=='quit':
-                break
+                return
             elif command.lower() == 'changeid':                
                 ChangeIDCommand()  
             elif command.lower() == 'protocol':
@@ -235,6 +238,6 @@ def main():
         else:
             print("Command not recognized.")      
 
-if __name__=="__main__" :
+if __name__=="__main__" :    
     main()
          
