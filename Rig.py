@@ -82,7 +82,7 @@ class OptoLifespanRig:
         ba[1]=0x07
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
-        result = self.thePort.Read(5)
+        result = self.thePort.Read(5)        
         if(len(result)==0):
             return "No response"
         else:
@@ -115,7 +115,7 @@ class OptoLifespanRig:
         if(decodedResult[0]!=0xFE):
             return False  
         decodedResult2 = decodedResult[1:]
-        if (len(decodedResult2) % 9 != 0):
+        if (len(decodedResult2) % 10 != 0):
             return False
         else:
             self.remoteProgram.FillProgramData(decodedResult2)        
@@ -158,7 +158,7 @@ class OptoLifespanRig:
             return "No RTC"
     def UploadLocalProgram(self):
         maxProgramSteps=40
-        ba = bytearray(9*maxProgramSteps+9)    
+        ba = bytearray(10*maxProgramSteps+9)    
         ba[0]=self.ID   
         ba[1]=0x0A     
         if self.localProgram.programType == Program.ProgramType.LINEAR:
@@ -192,12 +192,13 @@ class OptoLifespanRig:
             tmp = p.pulseWidth.to_bytes(2,byteorder='big')
             ba[currentbyteindex+3]=tmp[0]
             ba[currentbyteindex+4]=tmp[1]
+            ba[currentbyteindex+5]=p.triggers
             tmp = p.duration.to_bytes(4,byteorder='big')
-            ba[currentbyteindex+5]=tmp[0]
-            ba[currentbyteindex+6]=tmp[1]
-            ba[currentbyteindex+7]=tmp[2]
-            ba[currentbyteindex+8]=tmp[3]
-            currentbyteindex+=9          
+            ba[currentbyteindex+6]=tmp[0]
+            ba[currentbyteindex+7]=tmp[1]
+            ba[currentbyteindex+8]=tmp[2]
+            ba[currentbyteindex+9]=tmp[3]
+            currentbyteindex+=10          
 
         ba=ba[0:currentbyteindex]     
         encodedba=cobs.encode(ba)        

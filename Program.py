@@ -22,6 +22,7 @@ class ProgramStep:
         self.frequency=40
         self.pulseWidth=8
         self.duration=60
+        self.triggers=0
         self.elapsedDurationAtEnd=datetime.timedelta(0)
         self.time=datetime.timedelta(seconds=self.duration)
     def CopyProgramStep(self,p):
@@ -29,26 +30,28 @@ class ProgramStep:
         self.frequency = p.frequency
         self.pulseWidth = p.pulseWidth
         self.duration = p.duration
+        self.triggers = p.triggers
         self.elapsedDurationAtEnd=datetime.timedelta(0)
         self.time=datetime.timedelta(seconds=self.duration)
         self.stepNumber = p.stepNumber
     def CopyProgramStepFromString(self,p):
         theSplit = p.split(',')
-        if len(theSplit) == 4:
+        if len(theSplit) == 5:
             self.lightsOn = int(theSplit[0])
             self.frequency = int(theSplit[1])
             self.pulseWidth = int(theSplit[2])
-            self.duration = int(theSplit[3])
+            self.triggers = int(theSplit[3])
+            self.duration = int(theSplit[4])
             self.elapsedDurationAtEnd=datetime.timedelta(0)
             self.time=datetime.timedelta(seconds=self.duration)
             self.stepNumber = 0
     def GetProgramStepString(self):
-        s = 'Step = {:>3d}  Lights = {:>1d}  Freq = {:>3d}  Pulse = {:>3d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.lightsOn,self.frequency,self.pulseWidth,self.duration,self.elapsedDurationAtEnd.total_seconds())
+        s = 'Step = {:>3d}  Lights = {:>1d}  Freq = {:>3d}  Pulse = {:>3d}  Triggers = {:>1d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.lightsOn,self.frequency,self.pulseWidth,self.triggers,self.duration,self.elapsedDurationAtEnd.total_seconds())
         return s
     def GetProgramStepArrayForUART(self):
-        s= str(self.lightsOn) + "," + str(self.frequency) + "," +str(self.pulseWidth) + "," + str(self.duration) +",A"
+        s= str(self.lightsOn) + "," + str(self.frequency) + "," +str(self.pulseWidth) + "," + str(self.triggers) + "," +str(self.duration) +",A"
         if len(s)<11 :
-            s= "0"+str(self.lightsOn) + ",0" + str(self.frequency) + "," +str(self.pulseWidth) + "," + str(self.duration) +",A"
+            s= "0"+str(self.lightsOn) + ",0" + str(self.frequency) + "," +str(self.pulseWidth) + "," + str(self.triggers) + "," + str(self.duration) +",A"
         return bytearray(s.encode())
         
 
@@ -116,6 +119,7 @@ class Program:
             s+="\n\n    Program Duration: " + str(self.totalProgramDuration)           
             s+="\n\n Total program steps: " + str(self.numSteps) + "\n"           
         return s
+
     def GetProgramDataString(self):
         s=""        
         if self.numSteps < 1:
@@ -125,6 +129,7 @@ class Program:
             for i in range(self.numSteps):
                 s+=self.fullProgramSteps[i].GetProgramStepString() +"\n"
             return s
+
     def FillProgramStatus(self,bytesData):
         if bytesData[0]==1:
             self.programStatus = ProgramStatus.NOTLOADED
@@ -179,7 +184,8 @@ class Program:
         self.uninterruptedLoops = bytesData[30]<<24    
         self.uninterruptedLoops += bytesData[31]<<16    
         self.uninterruptedLoops += bytesData[32]<<8    
-        self.uninterruptedLoops += bytesData[33]   
+        self.uninterruptedLoops += bytesData[33] 
+
     def FillInElapsedTimes(self):
         if len(self.fullProgramSteps)<1:
             return
@@ -188,12 +194,14 @@ class Program:
             self.fullProgramSteps[i].elapsedDurationAtEnd = self.fullProgramSteps[i-1].elapsedDurationAtEnd + self.fullProgramSteps[i].time
         self.totalProgramDuration = self.fullProgramSteps[len(self.fullProgramSteps)-1].elapsedDurationAtEnd.total_seconds()
         self.numSteps = len(self.fullProgramSteps)
+    
     def FillProgramData(self, bytesData):
         self.fullProgramSteps.clear()
-        numsteps = (int)(len(bytesData)/9)            
+        numsteps = (int)(len(bytesData)/10)       
+        print(bytesData)     
         if numsteps < 1:
             return 
-        if numsteps ==1 and sum(bytesData)==9:
+        if numsteps ==1 and sum(bytesData)==10:
             return     
         indexer=0
         for i in range(numsteps):           
@@ -202,12 +210,14 @@ class Program:
             tmp.lightsOn = int(bytesData[indexer])
             tmp.frequency = int(bytesData[indexer+1]<<8) + int(bytesData[indexer+2])
             tmp.pulseWidth = int(bytesData[indexer+3]<<8) + int(bytesData[indexer+4])
-            tmp.duration = int(bytesData[indexer+5]<<24) + int(bytesData[indexer+6]<<16) + int(bytesData[indexer+7]<<8) +int(bytesData[indexer+8])
+            tmp.triggers = int(bytesData[indexer+5])
+            tmp.duration = int(bytesData[indexer+6]<<24) + int(bytesData[indexer+7]<<16) + int(bytesData[indexer+8]<<8) +int(bytesData[indexer+9])
             tmp.time = datetime.timedelta(seconds=tmp.duration)
             tmp.elapsedDurationAtEnd = datetime.timedelta(0)
             self.fullProgramSteps.append(tmp)
-            indexer+=9
-        self.FillInElapsedTimes()           
+            indexer+=10
+        self.FillInElapsedTimes()    
+
     def LoadLocalProgram(self,filePath):
         isInBlock = False
         totalBlockIterations=1
@@ -277,6 +287,7 @@ class Program:
                             self.programType = ProgramType.LOOPING
         self.programStatus = ProgramStatus.LOCAL   
         self.FillInElapsedTimes()
+
     def IsProgramIdentical(self, p):
         if self.programType != p.programType: return False
         if self.startTime != p.startTime: return False
@@ -285,6 +296,7 @@ class Program:
             if self.fullProgramSteps[i].lightsOn != p.fullProgramSteps[i].lightsOn: return False 
             if self.fullProgramSteps[i].frequency != p.fullProgramSteps[i].frequency: return False
             if self.fullProgramSteps[i].pulseWidth != p.fullProgramSteps[i].pulseWidth: return False
+            if self.fullProgramSteps[i].triggers != p.fullProgramSteps[i].triggers: return False
             if self.fullProgramSteps[i].duration != p.fullProgramSteps[i].duration: return False
         return True
 
