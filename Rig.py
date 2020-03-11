@@ -156,6 +156,7 @@ class OptoLifespanRig:
             return s
         else:
             return "No RTC"
+
     def UploadLocalProgram(self):
         maxProgramSteps=40
         ba = bytearray(10*maxProgramSteps+9)    
@@ -185,20 +186,23 @@ class OptoLifespanRig:
         currentbyteindex=9
         for index in range(maxIndex):
             p=self.localProgram.fullProgramSteps[index]
-            ba[currentbyteindex]=p.lightsOn
+            ba[currentbyteindex]=p.led1Threshold
+            ba[currentbyteindex+1]=p.led2Threshold
+            ba[currentbyteindex+2]=p.led3Threshold
+            ba[currentbyteindex+3]=p.led4Threshold
             tmp = p.frequency.to_bytes(2,byteorder='big')
-            ba[currentbyteindex+1]=tmp[0]
-            ba[currentbyteindex+2]=tmp[1]
+            ba[currentbyteindex+4]=tmp[0]
+            ba[currentbyteindex+5]=tmp[1]
             tmp = p.pulseWidth.to_bytes(2,byteorder='big')
-            ba[currentbyteindex+3]=tmp[0]
-            ba[currentbyteindex+4]=tmp[1]
-            ba[currentbyteindex+5]=p.triggers
-            tmp = p.duration.to_bytes(4,byteorder='big')
             ba[currentbyteindex+6]=tmp[0]
             ba[currentbyteindex+7]=tmp[1]
-            ba[currentbyteindex+8]=tmp[2]
-            ba[currentbyteindex+9]=tmp[3]
-            currentbyteindex+=10          
+            ba[currentbyteindex+8]=p.triggers
+            tmp = p.duration.to_bytes(4,byteorder='big')
+            ba[currentbyteindex+9]=tmp[0]
+            ba[currentbyteindex+10]=tmp[1]
+            ba[currentbyteindex+11]=tmp[2]
+            ba[currentbyteindex+12]=tmp[3]
+            currentbyteindex+=13          
 
         ba=ba[0:currentbyteindex]     
         encodedba=cobs.encode(ba)        

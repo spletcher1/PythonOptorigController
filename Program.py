@@ -18,17 +18,23 @@ class ProgramStatus(Enum):
 class ProgramStep:
     def __init__(self):
         self.stepNumber=0
-        self.lightsOn=0
+        self.led1Threshold=0
+        self.led2Threshold=0
+        self.led3Threshold=0
+        self.led4Threshold=0
         self.frequency=40
-        self.pulseWidth=8
+        self.dutyCycle=8
         self.duration=60
         self.triggers=0
         self.elapsedDurationAtEnd=datetime.timedelta(0)
         self.time=datetime.timedelta(seconds=self.duration)
     def CopyProgramStep(self,p):
-        self.lightsOn = p.lightsOn
+        self.led1Threshold = p.led1Threshold
+        self.led2Threshold = p.led2Threshold
+        self.led3Threshold = p.led3Threshold
+        self.led4Threshold = p.led4Threshold
         self.frequency = p.frequency
-        self.pulseWidth = p.pulseWidth
+        self.dutyCycle = p.pulseWidth
         self.duration = p.duration
         self.triggers = p.triggers
         self.elapsedDurationAtEnd=datetime.timedelta(0)
@@ -37,21 +43,22 @@ class ProgramStep:
     def CopyProgramStepFromString(self,p):
         theSplit = p.split(',')
         if len(theSplit) == 5:
-            self.lightsOn = int(theSplit[0])
-            self.frequency = int(theSplit[1])
-            self.pulseWidth = int(theSplit[2])
-            self.triggers = int(theSplit[3])
-            self.duration = int(theSplit[4])
+            self.led1Threshold = int(theSplit[0])
+            self.led2Threshold = int(theSplit[1])
+            self.led3Threshold = int(theSplit[2])
+            self.led4Threshold = int(theSplit[3])
+            self.frequency = int(theSplit[4])
+            self.dutyCycle = int(theSplit[5])
+            self.triggers = int(theSplit[6])
+            self.duration = int(theSplit[7])
             self.elapsedDurationAtEnd=datetime.timedelta(0)
             self.time=datetime.timedelta(seconds=self.duration)
             self.stepNumber = 0
     def GetProgramStepString(self):
-        s = 'Step = {:>3d}  Lights = {:>1d}  Freq = {:>3d}  Pulse = {:>3d}  Triggers = {:>1d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.lightsOn,self.frequency,self.pulseWidth,self.triggers,self.duration,self.elapsedDurationAtEnd.total_seconds())
+        s = 'Step = {:>3d}  Thresholds = {:>1d},{:>1d},{:>1d},{:>1d}  Freq = {:>3d}  Duty Cycle = {:>3d}  Triggers = {:>1d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.led1Threshold,self.led2Threshold,self.led3Threshold,self.led4Threshold,self.frequency,self.dutyCycle,self.triggers,self.duration,self.elapsedDurationAtEnd.total_seconds())
         return s
     def GetProgramStepArrayForUART(self):
-        s= str(self.lightsOn) + "," + str(self.frequency) + "," +str(self.pulseWidth) + "," + str(self.triggers) + "," +str(self.duration) +",A"
-        if len(s)<11 :
-            s= "0"+str(self.lightsOn) + ",0" + str(self.frequency) + "," +str(self.pulseWidth) + "," + str(self.triggers) + "," + str(self.duration) +",A"
+        s= str(self.led1Threshold) + "," + str(self.led2Threshold) + "," + str(self.led3Threshold) + "," + str(self.led4Threshold) + ","+str(self.frequency) + "," +str(self.dutyCycle) + "," + str(self.triggers) + "," +str(self.duration) +",A"
         return bytearray(s.encode())
         
 
@@ -197,25 +204,27 @@ class Program:
     
     def FillProgramData(self, bytesData):
         self.fullProgramSteps.clear()
-        numsteps = (int)(len(bytesData)/10)       
-        print(bytesData)     
+        numsteps = (int)(len(bytesData)/13)               
         if numsteps < 1:
             return 
-        if numsteps ==1 and sum(bytesData)==10:
+        if numsteps ==1 and sum(bytesData)==13:
             return     
         indexer=0
         for i in range(numsteps):           
             tmp = ProgramStep()
             tmp.stepNumber = i+1
-            tmp.lightsOn = int(bytesData[indexer])
-            tmp.frequency = int(bytesData[indexer+1]<<8) + int(bytesData[indexer+2])
-            tmp.pulseWidth = int(bytesData[indexer+3]<<8) + int(bytesData[indexer+4])
-            tmp.triggers = int(bytesData[indexer+5])
-            tmp.duration = int(bytesData[indexer+6]<<24) + int(bytesData[indexer+7]<<16) + int(bytesData[indexer+8]<<8) +int(bytesData[indexer+9])
+            tmp.led1Threshold = int(bytesData[indexer])
+            tmp.led2Threshold = int(bytesData[indexer+1])
+            tmp.led3Threshold = int(bytesData[indexer+2])
+            tmp.led4Threshold = int(bytesData[indexer+3])
+            tmp.frequency = int(bytesData[indexer+4]<<8) + int(bytesData[indexer+5])
+            tmp.dutyCycle = int(bytesData[indexer+6]<<8) + int(bytesData[indexer+7])
+            tmp.triggers = int(bytesData[indexer+8])
+            tmp.duration = int(bytesData[indexer+9]<<24) + int(bytesData[indexer+10]<<16) + int(bytesData[indexer+11]<<8) +int(bytesData[indexer+12])
             tmp.time = datetime.timedelta(seconds=tmp.duration)
             tmp.elapsedDurationAtEnd = datetime.timedelta(0)
             self.fullProgramSteps.append(tmp)
-            indexer+=10
+            indexer+=13
         self.FillInElapsedTimes()    
 
     def LoadLocalProgram(self,filePath):
@@ -293,7 +302,10 @@ class Program:
         if self.startTime != p.startTime: return False
         if len(self.fullProgramSteps) != len(p.fullProgramSteps): return False
         for i in range(len(self.fullProgramSteps)):
-            if self.fullProgramSteps[i].lightsOn != p.fullProgramSteps[i].lightsOn: return False 
+            if self.fullProgramSteps[i].led1Threshold != p.fullProgramSteps[i].led1Threshold: return False 
+            if self.fullProgramSteps[i].led2Threshold != p.fullProgramSteps[i].led2Threshold: return False 
+            if self.fullProgramSteps[i].led3Threshold != p.fullProgramSteps[i].led3Threshold: return False 
+            if self.fullProgramSteps[i].led4Threshold != p.fullProgramSteps[i].led4Threshold: return False 
             if self.fullProgramSteps[i].frequency != p.fullProgramSteps[i].frequency: return False
             if self.fullProgramSteps[i].pulseWidth != p.fullProgramSteps[i].pulseWidth: return False
             if self.fullProgramSteps[i].triggers != p.fullProgramSteps[i].triggers: return False
