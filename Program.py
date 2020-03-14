@@ -42,7 +42,7 @@ class ProgramStep:
         self.stepNumber = p.stepNumber
     def CopyProgramStepFromString(self,p):
         theSplit = p.split(',')
-        if len(theSplit) == 5:
+        if len(theSplit) == 8:
             self.led1Threshold = int(theSplit[0])
             self.led2Threshold = int(theSplit[1])
             self.led3Threshold = int(theSplit[2])
@@ -307,7 +307,7 @@ class Program:
             if self.fullProgramSteps[i].led3Threshold != p.fullProgramSteps[i].led3Threshold: return False 
             if self.fullProgramSteps[i].led4Threshold != p.fullProgramSteps[i].led4Threshold: return False 
             if self.fullProgramSteps[i].frequency != p.fullProgramSteps[i].frequency: return False
-            if self.fullProgramSteps[i].pulseWidth != p.fullProgramSteps[i].pulseWidth: return False
+            if self.fullProgramSteps[i].dutyCycle != p.fullProgramSteps[i].dutyCycle: return False
             if self.fullProgramSteps[i].triggers != p.fullProgramSteps[i].triggers: return False
             if self.fullProgramSteps[i].duration != p.fullProgramSteps[i].duration: return False
         return True

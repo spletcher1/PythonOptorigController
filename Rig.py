@@ -93,7 +93,7 @@ class OptoLifespanRig:
         ba[1]=0x09
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)         
-        result = self.thePort.ReadCOBSPacket(50)   
+        result = self.thePort.ReadCOBSPacket(50)          
         decodedResult = cobs.decode(result)  
         if (len(decodedResult)!=35):
             return False      
@@ -115,7 +115,7 @@ class OptoLifespanRig:
         if(decodedResult[0]!=0xFE):
             return False  
         decodedResult2 = decodedResult[1:]
-        if (len(decodedResult2) % 10 != 0):
+        if (len(decodedResult2) % 13 != 0):
             return False
         else:
             self.remoteProgram.FillProgramData(decodedResult2)        
@@ -158,8 +158,8 @@ class OptoLifespanRig:
             return "No RTC"
 
     def UploadLocalProgram(self):
-        maxProgramSteps=40
-        ba = bytearray(10*maxProgramSteps+9)    
+        maxProgramSteps=33
+        ba = bytearray(13*maxProgramSteps+9)    
         ba[0]=self.ID   
         ba[1]=0x0A     
         if self.localProgram.programType == Program.ProgramType.LINEAR:
@@ -180,7 +180,7 @@ class OptoLifespanRig:
                 
         if len(self.localProgram.fullProgramSteps) > maxProgramSteps:
             maxIndex = maxProgramSteps
-            print("Maximum steps exceeded.  Only uploading first 40.")
+            print("Maximum steps exceeded.  Only uploading first 33.")
         else:
             maxIndex = len(self.localProgram.fullProgramSteps)
         currentbyteindex=9
@@ -193,7 +193,7 @@ class OptoLifespanRig:
             tmp = p.frequency.to_bytes(2,byteorder='big')
             ba[currentbyteindex+4]=tmp[0]
             ba[currentbyteindex+5]=tmp[1]
-            tmp = p.pulseWidth.to_bytes(2,byteorder='big')
+            tmp = p.dutyCycle.to_bytes(2,byteorder='big')
             ba[currentbyteindex+6]=tmp[0]
             ba[currentbyteindex+7]=tmp[1]
             ba[currentbyteindex+8]=p.triggers
