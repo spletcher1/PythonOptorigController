@@ -1,9 +1,0 @@
-ProgramType: Circadian
-StartTime: 22:18:00
-# Lights on 11am-noon
-# Lights on 6pm-7pm
-Interval:0,45,8,39600
-Interval:1,45,8,3600
-Interval:0,45,8,21600
-Interval:1,45,8,3600
-Interval:0,45,8,18000

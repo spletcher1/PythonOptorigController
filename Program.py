@@ -1,5 +1,6 @@
 from enum import Enum
 import datetime
+import sys
 
 class ProgramType(Enum):
     LINEAR=1
@@ -34,7 +35,7 @@ class ProgramStep:
         self.led3Threshold = p.led3Threshold
         self.led4Threshold = p.led4Threshold
         self.frequency = p.frequency
-        self.dutyCycle = p.pulseWidth
+        self.dutyCycle = p.dutyCycle
         self.duration = p.duration
         self.triggers = p.triggers
         self.elapsedDurationAtEnd=datetime.timedelta(0)
@@ -235,8 +236,7 @@ class Program:
             readFile = open(filePath,'r')
         except:
             print("\nFile open error. Program not loaded.\n")
-            return
-        print("hi")
+            return        
         program=readFile.readlines()
         readFile.close()
         self.ClearProgram()
@@ -312,7 +312,13 @@ class Program:
             if self.fullProgramSteps[i].duration != p.fullProgramSteps[i].duration: return False
         return True
 
-
+if __name__=="__main__" :
+    theProgram = Program()
+    for i, arg in enumerate(sys.argv):
+        print(f"Argument {i:>6}: {arg}")
+    theProgram.LoadLocalProgram(sys.argv[1])
+    print(theProgram.GetProgramStatusString())
+    print(theProgram.GetProgramDataString())
 
 
 

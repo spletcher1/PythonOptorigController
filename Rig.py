@@ -253,9 +253,9 @@ class OptoLifespanRig:
         else:
             s+="           I2C timeout error: False\n"
         if self.currentErrors & 0x40:
-            s+="   RTC datetime format error: True\n"
+            s+="                   RTC error: True\n"
         else:
-            s+="   RTC datetime format error: False\n"
+            s+="                   RTC error: False\n"
         if self.currentErrors & 0x80:
             s+="                   Bitflag 2: True\n"
         else:
