@@ -6,7 +6,7 @@ import serial.tools.list_ports
 
 class MyUART:    
     def Open(self,port):
-        self.thePort=serial.Serial(port,19200,timeout=3)        
+        self.thePort=serial.Serial(port,19200,timeout=1)        
     def Write(self,s):
         self.thePort.write(s.encode())
     def WriteByteArray(self,ba):

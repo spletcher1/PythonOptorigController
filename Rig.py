@@ -108,7 +108,7 @@ class OptoLifespanRig:
         ba[1]=0x01
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
-        result = self.thePort.ReadCOBSPacket(3000)    
+        result = self.thePort.ReadCOBSPacket(10000)    
         decodedResult = cobs.decode(result) 
         if (len(decodedResult)==0):
             return False      
@@ -158,7 +158,7 @@ class OptoLifespanRig:
             return "No RTC"
 
     def UploadLocalProgram(self):
-        maxProgramSteps=33
+        maxProgramSteps=3000
         ba = bytearray(13*maxProgramSteps+9)    
         ba[0]=self.ID   
         ba[1]=0x0A     
@@ -180,7 +180,7 @@ class OptoLifespanRig:
                 
         if len(self.localProgram.fullProgramSteps) > maxProgramSteps:
             maxIndex = maxProgramSteps
-            print("Maximum steps exceeded.  Only uploading first 33.")
+            print("Maximum steps exceeded.  Only uploading first 3000.")
         else:
             maxIndex = len(self.localProgram.fullProgramSteps)
         currentbyteindex=9
