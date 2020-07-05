@@ -24,7 +24,7 @@ COMMANDS
 
 DESCRIPTION
 1)  Check to ensure software and firmware versions are the same.
-2)  Check to ensure local and remote times are the same or close enough. If no, execute step 2a.
+2)  Check to ensure local and remote times are the same or close enough. If not, execute step 2a.
       a. Will set the remote time to the current local time.
 3)  Loads filename.txt from same folder into the local software.
 4)  Downloads current program that is in RAM on controller and compares with local program.

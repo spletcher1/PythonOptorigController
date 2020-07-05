@@ -87,6 +87,17 @@ class OptoLifespanRig:
             return "No response"
         else:
             return result.decode()
+    def GetBoardInformationString(self):
+        ba = bytearray(3)
+        ba[0]=self.ID
+        ba[1]=0x10
+        ba[2]=self.endByte
+        self.thePort.WriteByteArray(ba) 
+        result = self.thePort.Read(5)        
+        if(len(result)==0):
+            return "No response"
+        else:
+            return result.decode()
     def UpdateRemoteProgramStatus(self):
         ba = bytearray(3)        
         ba[0]=self.ID
