@@ -1,0 +1,6 @@
+## This is the same as the LinearProgram.txt file except that the 
+## experiment will begin April 30, 11:00am.
+ProgramType: Linear
+StartTime: 04/30/2020 12:00:00
+Interval:0,1,0,0,40,32,0,10800
+Interval:1,0,0,0,40,32,0,10800

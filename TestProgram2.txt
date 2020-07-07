@@ -1,7 +1,10 @@
+## This is a shorthand way of programming 12 hours of 3min on 12min off
+## followed by 12hours of darkness (the normal night time for us is 8pm-8am)
+ProgramType: Looping
+StartTime: 08:00:00
 [BeginBlock]
-Iterations: 3
-Interval:1,45,50,2
-Interval:0,45,50,2
+Iterations: 48
+Interval:1,1,0,0,40,32,0,180
+Interval:0,0,0,0,40,32,0,720
 [EndBlock]
-Interval:0,15,10,5
-Interval:0,11,8,1
+Interval:0,0,0,0,40,32,0,43200  

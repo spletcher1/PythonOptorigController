@@ -1,0 +1,13 @@
+## This is the same program as the DaytimeLooping.txt but the program ProgramType
+## is circadian.  A circadian program is just a looping program with two constraints.
+## First, the sum of the intervals must equal 86400 seconds (24hours).
+## Second, the start time is assumed to be midnight (00:00:00).  If a start time
+## is provided, it is overridden when it is loaded.
+ProgramType: Circadian
+Interval:0,0,0,0,40,32,0,28800
+[BeginBlock]
+Iterations: 48
+Interval:1,1,0,0,40,32,0,180
+Interval:0,0,0,0,40,32,0,720
+[EndBlock]
+Interval:0,0,0,0,40,32,0,14400  

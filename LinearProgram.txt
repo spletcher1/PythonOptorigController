@@ -1,0 +1,9 @@
+## This program will start at noon and run for three hours then switch 
+## switch the light to the other side for three hours then end.
+## Lights in both chambers will 
+## Frequency is 40hz, pulse width is 32%, so 8ms on (40hz implies one cycle = 1000/40 = 25ms; 
+## 32% of that cycle the lights are on: 25*0.32 = 8ms).
+ProgramType: Linear
+StartTime: 12:00:00
+Interval:0,1,0,0,40,32,0,10800
+Interval:1,0,0,0,40,32,0,10800
