@@ -12,7 +12,7 @@ class MyUART:
     def WriteByteArray(self,ba):
         self.thePort.write(ba)
     def SetShortTimeout(self):
-        self.thePort.timeout=0.01
+        self.thePort.timeout=0.1
     def ResetTimeout(self):
         self.thePort.timeout=3
     def Read(self,numBytes):

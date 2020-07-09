@@ -16,14 +16,14 @@ class OptoLifespanRig:
         self.localProgram = Program.Program()
         self.currentErrors=0
     def GetListOfOnlineRigs(self):
-        rigNumbers=range(1,40)
+        rigNumbers=range(1,30)
         results = {}
         self.thePort.SetShortTimeout()
         for num in rigNumbers:
             self.ID = num
-            tmp=self.GetVersionInformationString()
+            tmp=self.GetVersionInformationString()            
             if tmp!="No response" :              
-                results[num] = tmp
+                results[num] = tmp                
             time.sleep(0.1)
         self.thePort.ResetTimeout()
         return results
