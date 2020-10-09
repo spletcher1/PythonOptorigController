@@ -54,7 +54,10 @@ class OptoLifespanRig:
         ba[1]=0x05
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba)
-        return self.SeekAcknowledgment()
+        self.thePort.SetLongTimeOut()
+        tmp = self.SeekAcknowledgment()
+        self.thePort.SetNormalTimeOut()
+        return tmp
     def SendClearErrors(self):
         ba = bytearray(3)
         ba[0]=self.ID
@@ -229,14 +232,17 @@ class OptoLifespanRig:
     def LoadLocalProgram(self,filePath):
         self.localProgram.LoadLocalProgram(filePath)
     def SeekAcknowledgment(self):
-        result = self.thePort.Read(3)
-        if len(result)!=3:
+        try:
+            result = self.thePort.Read(3)
+            if len(result)!=3:
+                return False
+            elif result[0] != 0xFE:
+                return False
+            else:
+                self.currentErrors = result[1]
+                return True
+        except:
             return False
-        elif result[0] != 0xFE:
-            return False
-        else:
-            self.currentErrors = result[1]
-            return True
     def GetCurrentErrorString(self):
         s="\n        ***Current Errors***\n\n"
         if self.currentErrors & 0x01:

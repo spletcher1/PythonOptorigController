@@ -29,7 +29,11 @@ class MyUART:
         available_ports=[]
         for p in ports:
             available_ports.append(p.device)
-        return available_ports    
+        return available_ports   
+    def SetLongTimeOut(self):
+        self.thePort.timeout=20
+    def SetNormalTimeOut(self):
+        self.thePort.timeout=1 
 
 if __name__=="__main__" :
     tmp = MyUART()
