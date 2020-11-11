@@ -236,66 +236,73 @@ class Program:
             readFile = open(filePath,'r')
         except:
             print("\nFile open error. Program not loaded.\n")
-            return        
-        program=readFile.readlines()
-        readFile.close()
-        self.ClearProgram()
-        for i in range(len(program)):
-            aline = program[i].strip()           
-            if aline[0]=='#':
-                continue
-            if aline[0]=='[' and aline.find(']') != -1:
-                index = aline.find(']')     
-                tmp=aline[1:index]       
-                if tmp.lower() == 'beginblock':
-                    isInBlock=True
-                    totalBlockIterations=1
-                    self.blockProgramSteps.clear()
-                elif tmp.lower() == 'endblock':
-                    isInBlock=False
-                    for ii in range(totalBlockIterations):
-                        for jj in range(len(self.blockProgramSteps)):
-                            pp = ProgramStep()
-                            pp.CopyProgramStep(self.blockProgramSteps[jj])                            
-                            pp.stepNumber = len(self.fullProgramSteps)+1
-                            self.fullProgramSteps.append(pp)
-            else:
-                theSplit = aline.split(':')              
-                if len(theSplit) > 2:
-                    theSplit[1] += ':' + theSplit[2] + ':' + theSplit[3]
-                if len(theSplit) >= 2:
-                    if theSplit[0].lower() == 'iterations':
-                        if isInBlock == True:
-                            totalBlockIterations = int(theSplit[1].strip())
-                    elif theSplit[0].lower() == 'interval':
-                        p = ProgramStep()
-                        p.CopyProgramStepFromString(theSplit[1])
-                        if isInBlock == True:
-                            self.blockProgramSteps.append(p)
-                        else:
-                            p.stepNumber = len(self.fullProgramSteps)+1
-                            self.fullProgramSteps.append(p)
-                    elif theSplit[0].lower() == 'starttime':
-                        tmp = theSplit[1].strip()
-                        if tmp.find('/') != -1:
-                            self.startTime = datetime.datetime.strptime(tmp,"%m/%d/%Y %H:%M:%S")
-                        else:
-                            tmp2 = datetime.datetime.strptime(tmp,"%H:%M:%S")
-                            tmp2 = tmp2.time()
-                            tmp3 = datetime.date.today()
-                            self.startTime = datetime.datetime.combine(tmp3,tmp2)
-                    elif theSplit[0].lower() == 'programtype':
-                        ss = theSplit[1].strip()
-                        if ss.lower() == 'linear':
-                            self.programType = ProgramType.LINEAR
-                        elif ss.lower()== 'looping':
-                            self.programType = ProgramType.LOOPING
-                        elif ss.lower() == 'circadian':
-                            self.programType = ProgramType.CIRCADIAN
-                        else:
-                            self.programType = ProgramType.LOOPING
-        self.programStatus = ProgramStatus.LOCAL   
-        self.FillInElapsedTimes()
+            return False    
+
+        try:   
+            program=readFile.readlines()
+            readFile.close()
+            self.ClearProgram()
+            for i in range(len(program)):
+                aline = program[i].strip()           
+                if aline[0]=='#':
+                    continue
+                if aline[0]=='[' and aline.find(']') != -1:
+                    index = aline.find(']')     
+                    tmp=aline[1:index]       
+                    if tmp.lower() == 'beginblock':
+                        isInBlock=True
+                        totalBlockIterations=1
+                        self.blockProgramSteps.clear()
+                    elif tmp.lower() == 'endblock':
+                        isInBlock=False
+                        for ii in range(totalBlockIterations):
+                            for jj in range(len(self.blockProgramSteps)):
+                                pp = ProgramStep()
+                                pp.CopyProgramStep(self.blockProgramSteps[jj])                            
+                                pp.stepNumber = len(self.fullProgramSteps)+1
+                                self.fullProgramSteps.append(pp)
+                else:
+                    theSplit = aline.split(':')              
+                    if len(theSplit) > 2:
+                        theSplit[1] += ':' + theSplit[2] + ':' + theSplit[3]
+                    if len(theSplit) >= 2:
+                        if theSplit[0].lower() == 'iterations':
+                            if isInBlock == True:
+                                totalBlockIterations = int(theSplit[1].strip())
+                        elif theSplit[0].lower() == 'interval':
+                            p = ProgramStep()
+                            p.CopyProgramStepFromString(theSplit[1])
+                            if isInBlock == True:
+                                self.blockProgramSteps.append(p)
+                            else:
+                                p.stepNumber = len(self.fullProgramSteps)+1
+                                self.fullProgramSteps.append(p)
+                        elif theSplit[0].lower() == 'starttime':
+                            tmp = theSplit[1].strip()
+                            if tmp.find('/') != -1:
+                                self.startTime = datetime.datetime.strptime(tmp,"%m/%d/%Y %H:%M:%S")
+                            else:
+                                tmp2 = datetime.datetime.strptime(tmp,"%H:%M:%S")
+                                tmp2 = tmp2.time()
+                                tmp3 = datetime.date.today()
+                                self.startTime = datetime.datetime.combine(tmp3,tmp2)
+                        elif theSplit[0].lower() == 'programtype':
+                            ss = theSplit[1].strip()
+                            if ss.lower() == 'linear':
+                                self.programType = ProgramType.LINEAR
+                            elif ss.lower()== 'looping':
+                                self.programType = ProgramType.LOOPING
+                            elif ss.lower() == 'circadian':
+                                self.programType = ProgramType.CIRCADIAN
+                            else:
+                                self.programType = ProgramType.LOOPING
+            self.programStatus = ProgramStatus.LOCAL   
+            self.FillInElapsedTimes()
+            return True
+        except:
+            print("\nFile load error. Program not loaded.\n")
+            return False    
+
 
     def IsProgramIdentical(self, p):
         if self.programType != p.programType: return False

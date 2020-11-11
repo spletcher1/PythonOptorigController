@@ -132,9 +132,9 @@ def ProtocolCommand():
 def ChangeIDCommand():
     ChooseOptoRig(theRig) 
 def LoadLocalCommand(arg1):
-    theRig.LoadLocalProgram(arg1)
-    print(theRig.GetLocalProgramString())                
-    PrintCompareTest(theRig)   
+    if (theRig.LoadLocalProgram(arg1)):
+        print(theRig.GetLocalProgramString())                
+        PrintCompareTest(theRig)   
 def SetTimeCommand2Arg(argument1,argument2):
     s = argument1 +" "+argument2                              
     if theRig.SendRTCSet(s):                    

@@ -230,7 +230,7 @@ class OptoLifespanRig:
     def AreLocalAndRemoteProgramsIdentical(self):
         return self.localProgram.IsProgramIdentical(self.remoteProgram)
     def LoadLocalProgram(self,filePath):
-        self.localProgram.LoadLocalProgram(filePath)
+        return self.localProgram.LoadLocalProgram(filePath)
     def SeekAcknowledgment(self):
         try:
             result = self.thePort.Read(3)
