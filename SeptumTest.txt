@@ -1,0 +1,4 @@
+ProgramType: Looping
+Interval:2,0,0,0,20,32,0,5
+Interval:0,2,0,0,20,32,0,5
+Interval:0,0,0,0,40,32,0,5
