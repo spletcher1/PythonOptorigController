@@ -3,8 +3,8 @@
 ProgramType: Looping
 StartTime: 08:00:00
 [BeginBlock]
-Iterations: 48
-Interval:1,1,0,0,40,32,0,180
-Interval:0,0,0,0,40,32,0,720
+Iterations: 10
+Interval:1,1,0,0,40,32,0,10
+Interval:0,0,0,0,40,32,0,50
 [EndBlock]
 Interval:0,0,0,0,40,32,0,43200  

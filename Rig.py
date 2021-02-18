@@ -16,16 +16,17 @@ class OptoLifespanRig:
         self.localProgram = Program.Program()
         self.currentErrors=0
     def GetListOfOnlineRigs(self):
-        rigNumbers=range(1,30)
+        #rigNumbers=range(1,30)
+        rigNumbers=range(1,2)
         results = {}
-        self.thePort.SetShortTimeout()
+        self.thePort.SetShortTimeOut()
         for num in rigNumbers:
             self.ID = num
             tmp=self.GetVersionInformationString()            
             if tmp!="No response" :              
                 results[num] = tmp                
             time.sleep(0.1)
-        self.thePort.ResetTimeout()
+        self.thePort.SetNormalTimeOut()
         return results
     def SendStageProgram(self):
         ba = bytearray(3)
@@ -53,8 +54,8 @@ class OptoLifespanRig:
         ba[0]=self.ID
         ba[1]=0x05
         ba[2]=self.endByte
-        self.thePort.WriteByteArray(ba)
         self.thePort.SetLongTimeOut()
+        self.thePort.WriteByteArray(ba)             
         tmp = self.SeekAcknowledgment()
         self.thePort.SetNormalTimeOut()
         return tmp
@@ -80,17 +81,19 @@ class OptoLifespanRig:
         self.thePort.WriteByteArray(ba)
         return self.SeekAcknowledgment()
     def GetVersionInformationString(self):
+        self.thePort.ClearInputBuffer()
         ba = bytearray(3)
         ba[0]=self.ID
         ba[1]=0x07
         ba[2]=self.endByte
-        self.thePort.WriteByteArray(ba) 
-        result = self.thePort.Read(5)        
+        self.thePort.WriteByteArray(ba)
+        result = self.thePort.ReadCOBSPacket(20)        
         if(len(result)==0):
             return "No response"
         else:
             return result.decode()
     def GetBoardInformationString(self):
+        self.thePort.ClearInputBuffer()
         ba = bytearray(3)
         ba[0]=self.ID
         ba[1]=0x10
@@ -156,24 +159,28 @@ class OptoLifespanRig:
         s2 = self.localProgram.GetProgramDataString()
         return "\n***Current Local Program***\n"+ s1 + "\n\n" + s2
     def GetRemoteRTCString(self):
+        self.thePort.ClearInputBuffer()
         ba = bytearray(3)        
         ba[0]=self.ID
         ba[1]=0x08
         ba[2]=self.endByte
         self.thePort.WriteByteArray(ba) 
-        result = self.thePort.Read(6)    
-        if len(result)==0:
+        self.thePort.SetShortTimeOut()
+        result = self.thePort.ReadCOBSPacket(10)    
+        self.thePort.SetNormalTimeOut()
+        decodedResult = cobs.decode(result) 
+        if len(decodedResult)==0:
             return "No response"
-        if result[0]>5:
-            rtcTime = datetime.datetime(result[0]+2000,result[1],result[2],result[3],result[4],result[5]) 
+        if decodedResult[0]>5:
+            rtcTime = datetime.datetime(decodedResult[0]+2000,decodedResult[1],decodedResult[2],decodedResult[3],decodedResult[4],decodedResult[5]) 
             s = rtcTime.strftime("%A, %B %d, %Y %H:%M:%S")
             return s
         else:
             return "No RTC"
 
     def UploadLocalProgram(self):
-        maxProgramSteps=3000
-        ba = bytearray(13*maxProgramSteps+9)    
+        maxProgramSteps=1500
+        ba = bytearray(13*maxProgramSteps+100)    
         ba[0]=self.ID   
         ba[1]=0x0A     
         if self.localProgram.programType == Program.ProgramType.LINEAR:
@@ -194,7 +201,7 @@ class OptoLifespanRig:
                 
         if len(self.localProgram.fullProgramSteps) > maxProgramSteps:
             maxIndex = maxProgramSteps
-            print("Maximum steps exceeded.  Only uploading first 3000.")
+            print("Maximum steps exceeded.  Only uploading first 1500.")
         else:
             maxIndex = len(self.localProgram.fullProgramSteps)
         currentbyteindex=9
@@ -233,13 +240,14 @@ class OptoLifespanRig:
         return self.localProgram.LoadLocalProgram(filePath)
     def SeekAcknowledgment(self):
         try:
-            result = self.thePort.Read(3)
-            if len(result)!=3:
+            result = self.thePort.ReadCOBSPacket(4)
+            decodedResult = cobs.decode(result) 
+            if len(decodedResult)!=2:
                 return False
-            elif result[0] != 0xFE:
+            elif decodedResult[0] != 0xFE:
                 return False
             else:
-                self.currentErrors = result[1]
+                self.currentErrors = decodedResult[1]
                 return True
         except:
             return False
@@ -311,7 +319,19 @@ class OptoLifespanRig:
         
 
 if __name__=="__main__" :
-    theRig = OptoLifespanRig(14)    
+    theRig = OptoLifespanRig(1)
+    theRig.thePort.Open("/dev/ttyUSB0")
+    counter=0
+    #while(counter<100):
+    #    print(theRig.GetRemoteRTCString())
+    #    time.sleep(0.2)
+    #    counter+=1
+
+    while(counter<100):
+        print(theRig.GetCurrentErrors())
+        print(theRig.currentErrors)
+        time.sleep(0.2)
+        counter+=1
     #p=theRig.PrintRemoteProgram()
     #print(p)
     
