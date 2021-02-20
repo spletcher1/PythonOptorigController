@@ -6,7 +6,7 @@ import serial.tools.list_ports
 
 class MyUART:    
     def Open(self,port):
-        self.thePort=serial.Serial(port,19200,timeout=20)        
+        self.thePort=serial.Serial(port,115200,timeout=.5)        
     def Write(self,s):
         self.thePort.write(s.encode())
     def WriteByteArray(self,ba):
@@ -34,12 +34,11 @@ class MyUART:
     def ClearInputBuffer(self):
         if (self.thePort.in_waiting>0):
             self.thePort.reset_input_buffer()
-    def SetLongTimeOut(self):
-        self.thePort.timeout=20
-    def SetNormalTimeOut(self):
-        self.thePort.timeout=20 
-    def SetShortTimeOut(self):
-        self.thePort.timeout=0.1    
+    def GetTimeOut(self):
+        return self.thePort.timeout
+    def SetTimeOut(self,seconds):
+        self.thePort.timeout=seconds        
+  
  
 if __name__=="__main__" :
     tmp = MyUART()
