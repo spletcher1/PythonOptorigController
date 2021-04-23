@@ -1,5 +1,4 @@
 ProgramType: Looping
-Interval:0,0,1,0,40,32,0,30
-Interval:0,0,1,0,30,32,0,30
-Interval:0,0,1,0,5,32,0,30
-Interval:0,0,1,0,10,75,0,5
+StartTime: 09:00:00
+Interval:2,2,2,2,40,32,0,5
+Interval:0,0,0,0,40,32,0,5

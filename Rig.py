@@ -93,7 +93,7 @@ class OptoLifespanRig:
         tmp = self.thePort.GetTimeOut() 
         self.thePort.SetTimeOut(0.05)
         self.thePort.WriteByteArray(ba)
-        result = self.thePort.ReadCOBSPacket(10)     
+        result = self.thePort.ReadCOBSPacket(10)             
         self.thePort.SetTimeOut(tmp)   
         if(len(result)==0):
             return "No response"
