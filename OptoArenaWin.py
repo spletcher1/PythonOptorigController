@@ -18,6 +18,7 @@ import glob
 import shutil
 import Rig
 import MyUART
+import Program
 import ntpath
 
 class GUIUpdateThread(QtCore.QThread):
@@ -90,7 +91,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
             self.theRig.SetAsFirstRigInList()
             self.UpdateStatus()
             self.UpdateRemoteProgram()
-        else:            
+        else:              
             sys.exit()
 
     def UpdateStatus(self):
@@ -104,22 +105,9 @@ class MyMainWindow(QtWidgets.QMainWindow):
     def UpdateRemoteProgram(self):
         ss= self.theRig.GetRemoteProgramStringForGUI()
         self.RemoteProgramTextEdit.setPlainText(ss)
+        self.ComparePrograms()
 
-    def UpdateLocalProgram(self):
-        if(self.currentLocalProgramName=="None loaded"):
-            self.LocalProgramTextEdit.setPlainText("None loaded.")    
-            return
-        if(self.currentLocalProgramPath=="None loaded"):
-            self.LocalProgramTextEdit.setPlainText("None loaded.")    
-            return
-
-        f = open(self.currentLocalProgramPath, 'r')
-        with f:
-            data = f.read()        
-            self.LocalProgramTextEdit.setPlainText(data)
-        f.close()
-
-
+   
     def UpdateGUI(self):
         self.statusLabel.setText(datetime.datetime.today().strftime("%B %d,%Y %H:%M:%S"))                    
 
@@ -229,26 +217,68 @@ class MyMainWindow(QtWidgets.QMainWindow):
             self.ConsoleTextEdit.append("Clear program signal sent but not acknowledged.")
         self.UpdateErrors(False)
         self.UpdateRemoteProgram()
+  
+    def ComparePrograms(self):
+        if(self.theRig.AreLocalAndRemoteProgramsIdentical()):
+            self.ProgramsIdenticalButton.setStyleSheet("background-color: green")
+            self.ConsoleTextEdit.append("Local and remote programs are identical.")
+        else:
+            self.ProgramsIdenticalButton.setStyleSheet("background-color: red")
+            self.ConsoleTextEdit.append("Local and remote programs are different.")
+
+
+    def UploadButtonClicked(self):
+        if (self.theRig.UploadLocalProgram()):
+            self.ConsoleTextEdit.append("Upload successful and acknowledged.")
+            time.sleep(.5)
+            self.UpdateErrors(False)
+            self.UpdateRemoteProgram()
+            self.ComparePrograms()
+        else :
+            self.ConsoleTextEdit.append("Upload not successful.")       
+
+    def LocalSaveButtonClicked(self):
+        try:
+            pg = Program.Program()            
+            text = self.LocalProgramTextEdit.toPlainText()
+            if(pg.LoadLocalProgramFromString(text)):
+                self.theRig.LoadLocalProgramFromString(text)
+                f = open(self.currentLocalProgramPath, 'w')
+                f.write(text)
+                f.close()                
+                self.ConsoleTextEdit.append("Local program changes saved and applied.")
+            else:
+                self.ConsoleTextEdit.append("Syntax Error: Local program changes not saved or applied.")
+            self.ComparePrograms()
+
+        except:
+            self.ConsoleTextEdit.append("Error: Local program changes NOT saved or applied.")
+
     def LocalLoadButtonClicked(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","Text Files (*.txt)", options=options)
         if fileName:
-            self.currentLocalProgramPath=fileName
-            self.currentLocalProgramName=ntpath.basename(self.currentLocalProgramPath)
-            self.LocalProgramNameLabel.setText(self.currentLocalProgramName)
-            self.UpdateLocalProgram()
-    def UploadButtonClicked(self):
-        pass
-    def LocalSaveButtonClicked(self):
-        try:
-            text = self.LocalProgramTextEdit.toPlainText()
-            f = open(self.currentLocalProgramPath, 'w')
-            f.write(text)
-            self.ConsoleTextEdit.append("Local file changes saved.")
-        except:
-            self.ConsoleTextEdit.append("Warning: local file changes NOT saved.")
-
+            pg = Program.Program()  
+            ## First check to make sure the program is valid.
+            ## TODO: Implement better program checking points in the Program class.
+            if(pg.LoadLocalProgram(fileName)):
+                self.theRig.LoadLocalProgram(fileName)
+                self.currentLocalProgramPath=fileName
+                self.currentLocalProgramName=ntpath.basename(self.currentLocalProgramPath)
+                self.LocalProgramNameLabel.setText(self.currentLocalProgramName)
+                f = open(self.currentLocalProgramPath, 'r')
+                with f:
+                    data = f.read()        
+                    self.LocalProgramTextEdit.setPlainText(data)
+                    f.close()
+                self.ConsoleTextEdit.append("Program loaded.")                
+                self.ComparePrograms()
+            else:
+                self.ConsoleTextEdit.append("Problem loading program.")
+                ## Leave the existing program loaded.
+                self.ComparePrograms()
+        
 
     def RemoteSaveButtonClicked(self):
         if self.theRig.SendSaveProgram():
@@ -256,8 +286,8 @@ class MyMainWindow(QtWidgets.QMainWindow):
         else:
             self.ConsoleTextEdit.append("Save program signal sent but not acknowledged.")
         self.UpdateErrors(False)
-
-
+    
+                
 def main():
     app = QtWidgets.QApplication(sys.argv)    
     myapp = MyMainWindow()        

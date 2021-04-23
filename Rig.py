@@ -167,7 +167,7 @@ class OptoLifespanRig:
             s2 = self.remoteProgram.GetProgramDataString()        
             return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
         else:
-            return "\nGet program update failed.\n"
+            return "Get program update failed.\n"
 
     def GetRemoteProgramStringForGUI(self):        
         if self.UpdateRemoteProgram():
@@ -203,7 +203,7 @@ class OptoLifespanRig:
         else:
             return "No RTC"
 
-    def UploadLocalProgram(self):
+    def UploadLocalProgram(self): 
         maxProgramSteps=2000
         ba = bytearray(13*maxProgramSteps+100)    
         ba[0]=self.ID   
@@ -263,6 +263,9 @@ class OptoLifespanRig:
         return self.localProgram.IsProgramIdentical(self.remoteProgram)
     def LoadLocalProgram(self,filePath):
         return self.localProgram.LoadLocalProgram(filePath)
+    def LoadLocalProgramFromString(self,ss):
+        return self.localProgram.LoadLocalProgramFromString(ss)    
+
     def SeekAcknowledgment(self,timeoutSeconds=0.5):
         try:
             tmp = self.thePort.GetTimeOut()

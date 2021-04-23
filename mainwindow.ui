@@ -389,7 +389,7 @@
           </size>
          </property>
          <property name="title">
-          <string>Actions:</string>
+          <string>Misc:</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_9">
           <property name="spacing">
