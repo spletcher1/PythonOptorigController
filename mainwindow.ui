@@ -723,9 +723,9 @@
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="LocalProgramPathLabel">
+              <widget class="QLabel" name="LocalProgramNameLabel">
                <property name="text">
-                <string>Path</string>
+                <string>None loaded</string>
                </property>
               </widget>
              </item>
@@ -819,7 +819,13 @@
                <number>1</number>
               </property>
               <item>
-               <widget class="QTextEdit" name="LocalProgramTextEdit"/>
+               <widget class="QTextEdit" name="LocalProgramTextEdit">
+                <property name="font">
+                 <font>
+                  <family>Ubuntu Mono</family>
+                 </font>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

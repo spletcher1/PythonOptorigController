@@ -18,6 +18,7 @@ import glob
 import shutil
 import Rig
 import MyUART
+import ntpath
 
 class GUIUpdateThread(QtCore.QThread):
     updateGUISignal = QtCore.pyqtSignal()
@@ -78,6 +79,9 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.MThread.updateGUISignal.connect(self.UpdateGUI)      
         self.MThread.start()
 
+        self.currentLocalProgramName="None Loaded"
+        self.currentLocalProgramPath="None Loaded"
+
         if(self.COMWindow.exec_()):
             portChoice = self.COMWindow.comboBox.currentText()
             if(portChoice=="None"):
@@ -95,12 +99,27 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.LocalTimeLabel.setText(datetime.datetime.today().strftime("%B %d, %Y %H:%M:%S"))                    
         self.RTCTimeLabel.setText(self.theRig.GetRemoteRTCString())
         self.FirmwareLabel.setText(self.theRig.GetVersionInformationString()[1:])
+        self.UpdateErrors(True)
 
     def UpdateRemoteProgram(self):
         ss= self.theRig.GetRemoteProgramStringForGUI()
         self.RemoteProgramTextEdit.setPlainText(ss)
 
-       
+    def UpdateLocalProgram(self):
+        if(self.currentLocalProgramName=="None loaded"):
+            self.LocalProgramTextEdit.setPlainText("None loaded.")    
+            return
+        if(self.currentLocalProgramPath=="None loaded"):
+            self.LocalProgramTextEdit.setPlainText("None loaded.")    
+            return
+
+        f = open(self.currentLocalProgramPath, 'r')
+        with f:
+            data = f.read()        
+            self.LocalProgramTextEdit.setPlainText(data)
+        f.close()
+
+
     def UpdateGUI(self):
         self.statusLabel.setText(datetime.datetime.today().strftime("%B %d,%Y %H:%M:%S"))                    
 
@@ -121,7 +140,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
 
     def UpdateErrors(self,updateFirst):
         if updateFirst==True:
-            theRig.GetCurrentErrors()
+            self.theRig.GetCurrentErrors()
         
         if self.theRig.currentErrors & 0x01:
             self.Error1CheckBox.setChecked(True)
@@ -161,17 +180,23 @@ class MyMainWindow(QtWidgets.QMainWindow):
         if self.theRig.currentErrors & 0x80:
             self.Error8CheckBox.setChecked(True)
         else:
-            self.Error8CheckBox.setChecked(False)
-
-    def UpdateLocalProgramTextEdit(self,ss):
-        self.LocalProgramTextEdit.setPlainText(ss)
+            self.Error8CheckBox.setChecked(False)        
 
     def ClearErrorsClicked(self):
-        print("here")
-        self.SearchAndFindFirstRig()
+        if self.theRig.SendClearErrors():
+            self.ConsoleTextEdit.append("Clear errors signal sent and acknowledged.")
+        else:
+            self.ConsoleTextEdit.append("Clear errors signal sent but not acknowledged.")
+        self.UpdateStatus()
 
     def SyncTimeClicked(self):
-        pass
+        s=datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        if self.theRig.SendRTCSet(s):                    
+            self.ConsoleTextEdit.append("New datetime sent and acknowledged.")         
+            self.UpdateErrors(False)  
+            self.UpdateStatus()
+        else:
+            self.ConsoleTextEdit.append("Problem sending new date and time.")
     def ProtocolButtonClicked(self):
         pass
     def GetButtonClicked(self):
@@ -205,11 +230,26 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.UpdateErrors(False)
         self.UpdateRemoteProgram()
     def LocalLoadButtonClicked(self):
-        pass
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","Text Files (*.txt)", options=options)
+        if fileName:
+            self.currentLocalProgramPath=fileName
+            self.currentLocalProgramName=ntpath.basename(self.currentLocalProgramPath)
+            self.LocalProgramNameLabel.setText(self.currentLocalProgramName)
+            self.UpdateLocalProgram()
     def UploadButtonClicked(self):
         pass
     def LocalSaveButtonClicked(self):
-        pass
+        try:
+            text = self.LocalProgramTextEdit.toPlainText()
+            f = open(self.currentLocalProgramPath, 'w')
+            f.write(text)
+            self.ConsoleTextEdit.append("Local file changes saved.")
+        except:
+            self.ConsoleTextEdit.append("Warning: local file changes NOT saved.")
+
+
     def RemoteSaveButtonClicked(self):
         if self.theRig.SendSaveProgram():
             self.ConsoleTextEdit.append("Save program signal sent and acknowledged.")
