@@ -15,6 +15,17 @@ class OptoLifespanRig:
         self.remoteProgram = Program.Program()
         self.localProgram = Program.Program()
         self.currentErrors=0
+    def SetAsFirstRigInList(self):
+        rigNumbers=range(1,30)        
+        results = {}        
+        for num in rigNumbers:
+            self.ID = num
+            tmp=self.GetVersionInformationString()            
+            if tmp!="No response" :              
+                self.ID = num              
+                return True
+            time.sleep(0.10)                      
+        return False
     def GetListOfOnlineRigs(self):
         rigNumbers=range(1,30)
         #rigNumbers=range(1,2)
@@ -157,6 +168,15 @@ class OptoLifespanRig:
             return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
         else:
             return "\nGet program update failed.\n"
+
+    def GetRemoteProgramStringForGUI(self):        
+        if self.UpdateRemoteProgram():
+            s1 = self.remoteProgram.GetProgramStatusString()
+            s2 = self.remoteProgram.GetProgramDataString()        
+            return s1 + "\n\n" + s2
+        else:
+            return "\nGet program update failed.\n"
+
     def GetLocalProgramString(self):               
         s1 = self.localProgram.GetProgramStatusString()
         s2 = self.localProgram.GetProgramDataString()
@@ -178,7 +198,7 @@ class OptoLifespanRig:
             return "No response"
         if decodedResult[0]>5:
             rtcTime = datetime.datetime(decodedResult[0]+2000,decodedResult[1],decodedResult[2],decodedResult[3],decodedResult[4],decodedResult[5]) 
-            s = rtcTime.strftime("%A, %B %d, %Y %H:%M:%S")
+            s = rtcTime.strftime("%B %d, %Y %H:%M:%S")
             return s
         else:
             return "No RTC"

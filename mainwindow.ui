@@ -81,54 +81,6 @@
           <property name="verticalSpacing">
            <number>1</number>
           </property>
-          <item row="0" column="1">
-           <widget class="QLabel" name="IDLabel">
-            <property name="minimumSize">
-             <size>
-              <width>50</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>1</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_11">
-            <property name="maximumSize">
-             <size>
-              <width>75</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>ID:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="SoftwareLabel">
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>4.0.0</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_3">
             <property name="maximumSize">
@@ -154,26 +106,39 @@
              </size>
             </property>
             <property name="text">
-             <string>4.0.10</string>
+             <string>?</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="3">
-           <widget class="QLabel" name="RTCTimeLabel">
-            <property name="minimumSize">
-             <size>
-              <width>175</width>
-              <height>0</height>
-             </size>
-            </property>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_4">
             <property name="maximumSize">
              <size>
-              <width>150</width>
+              <width>75</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="text">
-             <string>MM/DD/YYYY HH:MM:SS</string>
+             <string>Firmware:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="maximumSize">
+             <size>
+              <width>75</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>ID:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -193,44 +158,6 @@
             </property>
             <property name="text">
              <string>MM/DD/YYYY HH:MM:SS</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QLabel" name="label_5">
-            <property name="minimumSize">
-             <size>
-              <width>80</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>80</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>RTC Time:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="maximumSize">
-             <size>
-              <width>75</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Firmware:</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -256,10 +183,83 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="2" colspan="2">
-           <widget class="QPushButton" name="ProgramsIdenticalButton">
+          <item row="0" column="1">
+           <widget class="QLabel" name="IDLabel">
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
-             <string>Programs Identical?</string>
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QLabel" name="label_5">
+            <property name="minimumSize">
+             <size>
+              <width>80</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>RTC Time:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="SoftwareLabel">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>?</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <widget class="QLabel" name="RTCTimeLabel">
+            <property name="minimumSize">
+             <size>
+              <width>175</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>MM/DD/YYYY HH:MM:SS</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" colspan="2">
+           <widget class="QPushButton" name="TBDButton">
+            <property name="text">
+             <string>TBD</string>
             </property>
            </widget>
           </item>
@@ -282,58 +282,85 @@
            <number>1</number>
           </property>
           <item row="1" column="3">
-           <widget class="QCheckBox" name="checkBox_2">
+           <widget class="QCheckBox" name="Error5CheckBox">
             <property name="text">
              <string>CheckBox</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBox_5">
+           <widget class="QCheckBox" name="Error3CheckBox">
             <property name="text">
              <string>CheckBox</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
           <item row="0" column="3">
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QCheckBox" name="Error4CheckBox">
             <property name="text">
              <string>CheckBox</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_3">
+           <widget class="QCheckBox" name="Error1CheckBox">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="text">
              <string>CheckBox</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
           <item row="2" column="3">
-           <widget class="QCheckBox" name="checkBox_6">
+           <widget class="QCheckBox" name="Error6CheckBox">
             <property name="text">
              <string>CheckBox</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_4">
+           <widget class="QCheckBox" name="Error2CheckBox">
             <property name="text">
              <string>CheckBox</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
           <item row="0" column="4">
-           <widget class="QCheckBox" name="checkBox_7">
+           <widget class="QCheckBox" name="Error7CheckBox">
             <property name="text">
              <string>CheckBox</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
           <item row="1" column="4">
-           <widget class="QCheckBox" name="checkBox_8">
+           <widget class="QCheckBox" name="Error8CheckBox">
             <property name="text">
              <string>CheckBox</string>
+            </property>
+            <property name="checkable">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -465,6 +492,11 @@
                <height>600</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <family>Ubuntu Mono</family>
+              </font>
+             </property>
              <property name="readOnly">
               <bool>true</bool>
              </property>
@@ -563,7 +595,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="SaveButton">
+              <widget class="QPushButton" name="RemoteSaveButton">
                <property name="text">
                 <string>Save</string>
                </property>
@@ -617,7 +649,13 @@
                <number>1</number>
               </property>
               <item>
-               <widget class="QTextEdit" name="RemoteProgramTextEdit"/>
+               <widget class="QTextEdit" name="RemoteProgramTextEdit">
+                <property name="font">
+                 <font>
+                  <family>Ubuntu Mono</family>
+                 </font>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -692,6 +730,29 @@
               </widget>
              </item>
              <item>
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>Programs Identical?</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="ProgramsIdenticalButton">
+               <property name="maximumSize">
+                <size>
+                 <width>25</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="LocalLoadButton">
                <property name="maximumSize">
                 <size>
@@ -701,6 +762,19 @@
                </property>
                <property name="text">
                 <string>Load</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="LocalSaveButton">
+               <property name="maximumSize">
+                <size>
+                 <width>100</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Save</string>
                </property>
               </widget>
              </item>
