@@ -4,8 +4,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from pyudev.pyqt5 import MonitorObserver
-from pyudev import Context,Monitor
 import datetime
 import time
 import threading
