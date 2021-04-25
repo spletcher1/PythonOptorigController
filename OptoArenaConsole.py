@@ -6,7 +6,7 @@ import datetime
 import sys
 
 theRig = Rig.OptoLifespanRig(1)
-version ="4.0.0"
+version ="4.0.3"
 
 def ChooseSerialPort(optoRig):
     while True:
@@ -93,7 +93,7 @@ def FirmwareCommand():
     CheckForErrors(theRig,True)    
 def TimesCommand():
     s = "\n   Local time on rig: {}".format(theRig.GetRemoteRTCString())
-    s+= "\nLocal time on master: {}\n".format(datetime.datetime.now().strftime("%A, %B %d, %Y %H:%M:%S"))
+    s+= "\nLocal time on master: {}\n".format(datetime.datetime.now().strftime("%B %d, %Y %H:%M:%S"))
     print(s)   
     CheckForErrors(theRig,True)  
 def ErrorsCommand():
@@ -103,7 +103,7 @@ def SetTimeCommand1Arg():
     if theRig.SendRTCSet(s):                    
         print("New datetime sent and acknowledged.")
         s = "\n   Local time on rig: {}".format(theRig.GetRemoteRTCString())
-        s+= "\nLocal time on master: {}\n".format(datetime.datetime.now().strftime("%A, %B %d, %Y %H:%M:%S"))
+        s+= "\nLocal time on master: {}\n".format(datetime.datetime.now().strftime("%B %d, %Y %H:%M:%S"))
         print(s)   
         CheckForErrors(theRig,True)  
     else:

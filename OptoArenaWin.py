@@ -34,6 +34,11 @@ class GUIUpdateThread(QtCore.QThread):
     def StopThread(self):
         self.keepRunning = False
 
+class ProtocolWindow(QtWidgets.QDialog):
+    def __init__(self):
+        super(ProtocolWindow, self).__init__()
+        uic.loadUi("protocolWindow.ui", self)        
+
 class COMChoiceWindow(QtWidgets.QDialog):
     def __init__(self):
         super(COMChoiceWindow, self).__init__()
@@ -52,12 +57,13 @@ class COMChoiceWindow(QtWidgets.QDialog):
         
 class MyMainWindow(QtWidgets.QMainWindow):
     def __init__( self):   
-        self.version ="4.0.0"
+        self.version ="4.0.3"
         self.theRig = Rig.OptoLifespanRig(1)
         super(MyMainWindow,self).__init__()        
         uic.loadUi("mainwindow.ui",self)
 
-        self.COMWindow = COMChoiceWindow()
+        self.COMWindow = COMChoiceWindow()        
+        self.ProtocolWindow = ProtocolWindow()
         #tmp2 = "QTextEdit {background-color: "+self.defaultBackgroundColor+"}"
         #tmp3 = "QListWidget {background-color: "+self.defaultBackgroundColor+"}"
         #self.MessagesTextEdit.setStyleSheet(tmp2)        
@@ -104,7 +110,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
 
     def UpdateRemoteProgram(self):
         ss= self.theRig.GetRemoteProgramStringForGUI()
-        self.RemoteProgramTextEdit.setPlainText(ss)
+        self.RemoteProgramTextEdit.setPlainText(ss)        
         self.ComparePrograms()
 
    
@@ -123,8 +129,12 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.ClearButton.clicked.connect(self.ClearButtonClicked)
         self.LocalLoadButton.clicked.connect(self.LocalLoadButtonClicked)
         self.UploadButton.clicked.connect(self.UploadButtonClicked)
-        self.LocalSaveButton.clicked.connect(self.LocalSaveButtonClicked)
-        self.Error1CheckBox.setChecked(True)
+        self.LocalSaveButton.clicked.connect(self.LocalSaveButtonClicked)        
+        self.StatusRefreshButton.clicked.connect(self.StatusRefreshButtonClicked)
+
+    def StatusRefreshButtonClicked(self):
+        self.UpdateStatus()
+
 
     def UpdateErrors(self,updateFirst):
         if updateFirst==True:
@@ -170,72 +180,77 @@ class MyMainWindow(QtWidgets.QMainWindow):
         else:
             self.Error8CheckBox.setChecked(False)        
 
+    def AppendToConsole(self,ss):
+        self.ConsoleTextEdit.append(ss)
+        self.ConsoleTextEdit.ensureCursorVisible()
+
+
     def ClearErrorsClicked(self):
         if self.theRig.SendClearErrors():
-            self.ConsoleTextEdit.append("Clear errors signal sent and acknowledged.")
+            self.AppendToConsole("Clear errors signal sent and acknowledged.")          
         else:
-            self.ConsoleTextEdit.append("Clear errors signal sent but not acknowledged.")
+            self.AppendToConsole("Clear errors signal sent but not acknowledged.")                      
         self.UpdateStatus()
 
     def SyncTimeClicked(self):
         s=datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S")
-        if self.theRig.SendRTCSet(s):                    
-            self.ConsoleTextEdit.append("New datetime sent and acknowledged.")         
+        if self.theRig.SendRTCSet(s):   
+            self.AppendToConsole("New datetime sent and acknowledged.")                                       
             self.UpdateErrors(False)  
             self.UpdateStatus()
         else:
-            self.ConsoleTextEdit.append("Problem sending new date and time.")
+            self.AppendToConsole("Problem sending new date and time.")                                                   
     def ProtocolButtonClicked(self):
-        pass
+        self.PW = self.ProtocolWindow.show()
     def GetButtonClicked(self):
         self.UpdateRemoteProgram()
     def StageButtonClicked(self):
         if self.theRig.SendStageProgram():
-            self.ConsoleTextEdit.append("Stage program signal sent and acknowledged.")
+            self.AppendToConsole("Stage program signal sent and acknowledged.")         
         else:
-            self.ConsoleTextEdit.append("Stage program signal sent but not acknowledged.")
+            self.AppendToConsole("Stage program signal sent but not acknowledged.")              
         self.UpdateErrors(False)
         self.UpdateRemoteProgram()
     def StopButtonClicked(self):
         if self.theRig.SendStopProgram():
-            self.ConsoleTextEdit.append("Stop program signal sent and acknowledged.")
+            self.AppendToConsole("Stop program signal sent and acknowledged.")                 
         else:
-            self.ConsoleTextEdit.append("Stop program signal sent but not acknowledged.")
+            self.AppendToConsole("Stop program signal sent but not acknowledged.")         
         self.UpdateErrors(False)
         self.UpdateRemoteProgram()
     def RemoteLoadButtonClicked(self):
         if self.theRig.SendLoadProgram():
-            self.ConsoleTextEdit.append("Load program signal sent and acknowledged.")
+            self.AppendToConsole("Load program signal sent and acknowledged.")
         else:
-            self.ConsoleTextEdit.append("Load program signal sent but not acknowledged.")
+            self.AppendToConsole("Load program signal sent but not acknowledged.")
         self.UpdateErrors(False)
         self.UpdateRemoteProgram()
     def ClearButtonClicked(self):
         if self.theRig.SendClearProgram():
-            self.ConsoleTextEdit.append("Clear program signal sent and acknowledged.")
+            self.AppendToConsole("Clear program signal sent and acknowledged.")
         else:
-            self.ConsoleTextEdit.append("Clear program signal sent but not acknowledged.")
+            self.AppendToConsole("Clear program signal sent but not acknowledged.")
         self.UpdateErrors(False)
         self.UpdateRemoteProgram()
   
     def ComparePrograms(self):
         if(self.theRig.AreLocalAndRemoteProgramsIdentical()):
             self.ProgramsIdenticalButton.setStyleSheet("background-color: green")
-            self.ConsoleTextEdit.append("Local and remote programs are identical.")
+            self.AppendToConsole("Local and remote programs are identical.")
         else:
             self.ProgramsIdenticalButton.setStyleSheet("background-color: red")
-            self.ConsoleTextEdit.append("Local and remote programs are different.")
+            self.AppendToConsole("Local and remote programs are different.")
 
 
     def UploadButtonClicked(self):
         if (self.theRig.UploadLocalProgram()):
-            self.ConsoleTextEdit.append("Upload successful and acknowledged.")
+            self.AppendToConsole("Upload successful and acknowledged.")
             time.sleep(.5)
             self.UpdateErrors(False)
             self.UpdateRemoteProgram()
             self.ComparePrograms()
         else :
-            self.ConsoleTextEdit.append("Upload not successful.")       
+            self.AppendToConsole("Upload not successful.")       
 
     def LocalSaveButtonClicked(self):
         try:
@@ -246,13 +261,13 @@ class MyMainWindow(QtWidgets.QMainWindow):
                 f = open(self.currentLocalProgramPath, 'w')
                 f.write(text)
                 f.close()                
-                self.ConsoleTextEdit.append("Local program changes saved and applied.")
+                self.AppendToConsole("Local program changes saved and applied.")
             else:
-                self.ConsoleTextEdit.append("Syntax Error: Local program changes not saved or applied.")
+                self.AppendToConsole("Syntax Error: Local program changes not saved or applied.")
             self.ComparePrograms()
 
         except:
-            self.ConsoleTextEdit.append("Error: Local program changes NOT saved or applied.")
+            self.AppendToConsole("Error: Local program changes NOT saved or applied.")
 
     def LocalLoadButtonClicked(self):
         options = QFileDialog.Options()
@@ -270,21 +285,21 @@ class MyMainWindow(QtWidgets.QMainWindow):
                 f = open(self.currentLocalProgramPath, 'r')
                 with f:
                     data = f.read()        
-                    self.LocalProgramTextEdit.setPlainText(data)
+                    self.LocalProgramTextEdit.setPlainText(data)                    
                     f.close()
-                self.ConsoleTextEdit.append("Program loaded.")                
+                self.AppendToConsole("Program loaded.")                
                 self.ComparePrograms()
             else:
-                self.ConsoleTextEdit.append("Problem loading program.")
+                self.AppendToConsole("Problem loading program.")
                 ## Leave the existing program loaded.
                 self.ComparePrograms()
         
 
     def RemoteSaveButtonClicked(self):
         if self.theRig.SendSaveProgram():
-            self.ConsoleTextEdit.append("Save program signal sent and acknowledged.")
+            self.AppendToConsole("Save program signal sent and acknowledged.")
         else:
-            self.ConsoleTextEdit.append("Save program signal sent but not acknowledged.")
+            self.AppendToConsole("Save program signal sent but not acknowledged.")
         self.UpdateErrors(False)
     
                 

@@ -63,7 +63,7 @@ class ProgramStep:
             return False
 
     def GetProgramStepString(self):
-        s = 'Step = {:>3d}  Thresholds = {:>1d},{:>1d},{:>1d},{:>1d}  Freq = {:>3d}  Duty Cycle = {:>3d}  Triggers = {:>1d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.led1Threshold,self.led2Threshold,self.led3Threshold,self.led4Threshold,self.frequency,self.dutyCycle,self.triggers,self.duration,self.elapsedDurationAtEnd.total_seconds())
+        s = 'Step = {:>3d}  Thresholds = {:>1d},{:>1d},{:>1d},{:>1d}  Freq = {:>3d}  Duty Cycle = {:>3d}  Triggers = {:>2d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.led1Threshold,self.led2Threshold,self.led3Threshold,self.led4Threshold,self.frequency,self.dutyCycle,self.triggers,self.duration,self.elapsedDurationAtEnd.total_seconds())
         return s
     def GetProgramStepArrayForUART(self):
         s= str(self.led1Threshold) + "," + str(self.led2Threshold) + "," + str(self.led3Threshold) + "," + str(self.led4Threshold) + ","+str(self.frequency) + "," +str(self.dutyCycle) + "," + str(self.triggers) + "," +str(self.duration) +",A"
