@@ -1,4 +1,4 @@
-from OptoArena import main
+from OptoArenaConsole import main
 
 if __name__=="__main__" :
     main()

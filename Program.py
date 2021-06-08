@@ -43,20 +43,27 @@ class ProgramStep:
         self.stepNumber = p.stepNumber
     def CopyProgramStepFromString(self,p):
         theSplit = p.split(',')
-        if len(theSplit) == 8:
-            self.led1Threshold = int(theSplit[0])
-            self.led2Threshold = int(theSplit[1])
-            self.led3Threshold = int(theSplit[2])
-            self.led4Threshold = int(theSplit[3])
-            self.frequency = int(theSplit[4])
-            self.dutyCycle = int(theSplit[5])
-            self.triggers = int(theSplit[6])
-            self.duration = int(theSplit[7])
-            self.elapsedDurationAtEnd=datetime.timedelta(0)
-            self.time=datetime.timedelta(seconds=self.duration)
-            self.stepNumber = 0
+        try:
+            if len(theSplit) == 8:
+                self.led1Threshold = int(theSplit[0])
+                self.led2Threshold = int(theSplit[1])
+                self.led3Threshold = int(theSplit[2])
+                self.led4Threshold = int(theSplit[3])
+                self.frequency = int(theSplit[4])
+                self.dutyCycle = int(theSplit[5])
+                self.triggers = int(theSplit[6])
+                self.duration = int(theSplit[7])
+                self.elapsedDurationAtEnd=datetime.timedelta(0)
+                self.time=datetime.timedelta(seconds=self.duration)
+                self.stepNumber = 0
+                return True
+            else:
+                return False
+        except:
+            return False
+
     def GetProgramStepString(self):
-        s = 'Step = {:>3d}  Thresholds = {:>1d},{:>1d},{:>1d},{:>1d}  Freq = {:>3d}  Duty Cycle = {:>3d}  Triggers = {:>1d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.led1Threshold,self.led2Threshold,self.led3Threshold,self.led4Threshold,self.frequency,self.dutyCycle,self.triggers,self.duration,self.elapsedDurationAtEnd.total_seconds())
+        s = 'Step = {:>3d}  Thresholds = {:>1d},{:>1d},{:>1d},{:>1d}  Freq = {:>3d}  Duty Cycle = {:>3d}  Triggers = {:>2d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.led1Threshold,self.led2Threshold,self.led3Threshold,self.led4Threshold,self.frequency,self.dutyCycle,self.triggers,self.duration,self.elapsedDurationAtEnd.total_seconds())
         return s
     def GetProgramStepArrayForUART(self):
         s= str(self.led1Threshold) + "," + str(self.led2Threshold) + "," + str(self.led3Threshold) + "," + str(self.led4Threshold) + ","+str(self.frequency) + "," +str(self.dutyCycle) + "," + str(self.triggers) + "," +str(self.duration) +",A"
@@ -271,7 +278,8 @@ class Program:
                                 totalBlockIterations = int(theSplit[1].strip())
                         elif theSplit[0].lower() == 'interval':
                             p = ProgramStep()
-                            p.CopyProgramStepFromString(theSplit[1])
+                            if(p.CopyProgramStepFromString(theSplit[1])==False):
+                                return False
                             if isInBlock == True:
                                 self.blockProgramSteps.append(p)
                             else:
@@ -301,8 +309,75 @@ class Program:
             return True
         except:
             print("\nFile load error. Program not loaded.\n")
-            return False    
+            return False  
 
+    def LoadLocalProgramFromString(self,ss):
+        isInBlock = False
+        totalBlockIterations=1        
+        try:   
+            program=ss.splitlines()            
+            self.ClearProgram()
+            for i in range(len(program)):
+                aline = program[i].strip()           
+                if aline[0]=='#':
+                    continue
+                if aline[0]=='[' and aline.find(']') != -1:
+                    index = aline.find(']')     
+                    tmp=aline[1:index]       
+                    if tmp.lower() == 'beginblock':
+                        isInBlock=True
+                        totalBlockIterations=1
+                        self.blockProgramSteps.clear()
+                    elif tmp.lower() == 'endblock':
+                        isInBlock=False
+                        for ii in range(totalBlockIterations):
+                            for jj in range(len(self.blockProgramSteps)):
+                                pp = ProgramStep()
+                                pp.CopyProgramStep(self.blockProgramSteps[jj])                            
+                                pp.stepNumber = len(self.fullProgramSteps)+1
+                                self.fullProgramSteps.append(pp)
+                else:
+                    theSplit = aline.split(':')              
+                    if len(theSplit) > 2:
+                        theSplit[1] += ':' + theSplit[2] + ':' + theSplit[3]
+                    if len(theSplit) >= 2:
+                        if theSplit[0].lower() == 'iterations':
+                            if isInBlock == True:
+                                totalBlockIterations = int(theSplit[1].strip())
+                        elif theSplit[0].lower() == 'interval':
+                            p = ProgramStep()
+                            if(p.CopyProgramStepFromString(theSplit[1])==False):
+                                return False
+                            if isInBlock == True:
+                                self.blockProgramSteps.append(p)
+                            else:
+                                p.stepNumber = len(self.fullProgramSteps)+1
+                                self.fullProgramSteps.append(p)
+                        elif theSplit[0].lower() == 'starttime':
+                            tmp = theSplit[1].strip()
+                            if tmp.find('/') != -1:
+                                self.startTime = datetime.datetime.strptime(tmp,"%m/%d/%Y %H:%M:%S")
+                            else:
+                                tmp2 = datetime.datetime.strptime(tmp,"%H:%M:%S")
+                                tmp2 = tmp2.time()
+                                tmp3 = datetime.date.today()
+                                self.startTime = datetime.datetime.combine(tmp3,tmp2)
+                        elif theSplit[0].lower() == 'programtype':
+                            ss = theSplit[1].strip()
+                            if ss.lower() == 'linear':
+                                self.programType = ProgramType.LINEAR
+                            elif ss.lower()== 'looping':
+                                self.programType = ProgramType.LOOPING
+                            elif ss.lower() == 'circadian':
+                                self.programType = ProgramType.CIRCADIAN
+                            else:
+                                self.programType = ProgramType.LOOPING
+            self.programStatus = ProgramStatus.LOCAL   
+            self.FillInElapsedTimes()
+            return True
+        except:
+            print("\nFile load error. Program not loaded.\n")
+            return False   
 
     def IsProgramIdentical(self, p):
         if self.programType != p.programType: return False
