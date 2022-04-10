@@ -70,7 +70,13 @@ class ProgramStep:
         return bytearray(s.encode())
         
 
-   
+class ProgramGroup:
+    def __init__(self):
+        self.groupNumber=0
+        self.duration=60
+        
+        self.elapsedDurationAtEnd=datetime.timedelta(0)
+        self.time=datetime.timedelta(seconds=self.duration)
 
 
 class Program:
@@ -87,6 +93,9 @@ class Program:
         self.rtcTime = datetime.datetime(1,1,1)
         self.fullProgramSteps = []
         self.blockProgramSteps = []
+        self.numGroups=0
+        self.currentGroupNumber=0
+        self.currentIteration=0        
     def ClearProgram(self):
         self.fullProgramSteps.clear()
         self.blockProgramSteps.clear()
@@ -191,15 +200,20 @@ class Program:
         self.totalProgramDuration += bytesData[24]<<8    
         self.totalProgramDuration += bytesData[25]    
 
-        self.numSteps = bytesData[26]<<8    
-        self.numSteps += bytesData[27]    
-        self.currentStep = bytesData[28]<<8    
-        self.currentStep += bytesData[29]+1  
+        self.numGroups=bytesData[26]
+        self.currentGroupNumber=bytesData[27]
 
-        self.uninterruptedLoops = bytesData[30]<<24    
-        self.uninterruptedLoops += bytesData[31]<<16    
-        self.uninterruptedLoops += bytesData[32]<<8    
-        self.uninterruptedLoops += bytesData[33] 
+        self.currentIteration = bytesData[28]<<24    
+        self.currentIteration += bytesData[29]<<16    
+        self.currentIteration += bytesData[30]<<8    
+        self.currentIteration += bytesData[31] 
+        
+        self.numSteps += bytesData[32]    
+        
+        self.uninterruptedLoops = bytesData[33]<<24    
+        self.uninterruptedLoops += bytesData[34]<<16    
+        self.uninterruptedLoops += bytesData[35]<<8    
+        self.uninterruptedLoops += bytesData[36] 
 
     def FillInElapsedTimes(self):
         if len(self.fullProgramSteps)<1:
