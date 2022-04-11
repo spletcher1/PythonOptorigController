@@ -1,6 +1,8 @@
 from enum import Enum
 import datetime
 import sys
+from ProgramStep import ProgramStep
+from ProgramGroup import ProgramGroup
 
 class ProgramType(Enum):
     LINEAR=1
@@ -16,69 +18,6 @@ class ProgramStatus(Enum):
     LOCAL=5
     NONE=6
 
-class ProgramStep:
-    def __init__(self):
-        self.stepNumber=0
-        self.led1Threshold=0
-        self.led2Threshold=0
-        self.led3Threshold=0
-        self.led4Threshold=0
-        self.frequency=40
-        self.dutyCycle=8
-        self.duration=60
-        self.triggers=0
-        self.elapsedDurationAtEnd=datetime.timedelta(0)
-        self.time=datetime.timedelta(seconds=self.duration)
-    def CopyProgramStep(self,p):
-        self.led1Threshold = p.led1Threshold
-        self.led2Threshold = p.led2Threshold
-        self.led3Threshold = p.led3Threshold
-        self.led4Threshold = p.led4Threshold
-        self.frequency = p.frequency
-        self.dutyCycle = p.dutyCycle
-        self.duration = p.duration
-        self.triggers = p.triggers
-        self.elapsedDurationAtEnd=datetime.timedelta(0)
-        self.time=datetime.timedelta(seconds=self.duration)
-        self.stepNumber = p.stepNumber
-    def CopyProgramStepFromString(self,p):
-        theSplit = p.split(',')
-        try:
-            if len(theSplit) == 8:
-                self.led1Threshold = int(theSplit[0])
-                self.led2Threshold = int(theSplit[1])
-                self.led3Threshold = int(theSplit[2])
-                self.led4Threshold = int(theSplit[3])
-                self.frequency = int(theSplit[4])
-                self.dutyCycle = int(theSplit[5])
-                self.triggers = int(theSplit[6])
-                self.duration = int(theSplit[7])
-                self.elapsedDurationAtEnd=datetime.timedelta(0)
-                self.time=datetime.timedelta(seconds=self.duration)
-                self.stepNumber = 0
-                return True
-            else:
-                return False
-        except:
-            return False
-
-    def GetProgramStepString(self):
-        s = 'Step = {:>3d}  Thresholds = {:>1d},{:>1d},{:>1d},{:>1d}  Freq = {:>3d}  Duty Cycle = {:>3d}  Triggers = {:>2d}  Duration = {:>5d}  Elapsed = {:>5.0f}'.format(self.stepNumber,self.led1Threshold,self.led2Threshold,self.led3Threshold,self.led4Threshold,self.frequency,self.dutyCycle,self.triggers,self.duration,self.elapsedDurationAtEnd.total_seconds())
-        return s
-    def GetProgramStepArrayForUART(self):
-        s= str(self.led1Threshold) + "," + str(self.led2Threshold) + "," + str(self.led3Threshold) + "," + str(self.led4Threshold) + ","+str(self.frequency) + "," +str(self.dutyCycle) + "," + str(self.triggers) + "," +str(self.duration) +",A"
-        return bytearray(s.encode())
-        
-
-class ProgramGroup:
-    def __init__(self):
-        self.groupNumber=0
-        self.duration=60
-        
-        self.elapsedDurationAtEnd=datetime.timedelta(0)
-        self.time=datetime.timedelta(seconds=self.duration)
-
-
 class Program:
     def __init__(self):
         self.programType = ProgramType.NONE
@@ -86,24 +25,28 @@ class Program:
         self.totalProgramDuration=0
         self.elapsedSeconds=0
         self.correctedSeconds=0
-        self.numSteps=0
-        self.currentStep=0
         self.uninterruptedLoops=0
         self.startTime = datetime.datetime(1,1,1)
         self.rtcTime = datetime.datetime(1,1,1)
-        self.fullProgramSteps = []
-        self.blockProgramSteps = []
         self.numGroups=0
-        self.currentGroupNumber=0
-        self.currentIteration=0        
+        self.currentGroupNumber=-1
+        self.currentIteration=0       
+        self.programGroups = []
+
     def ClearProgram(self):
-        self.fullProgramSteps.clear()
-        self.blockProgramSteps.clear()
+        self.programGroups.clear()
         self.programType = ProgramType.NONE
         self.programStatus = ProgramStatus.NONE
         self.startTime = datetime.datetime(2001,1,1)
         self.totalProgramDuration = 0
+        self.elapsedSeconds=0
+        self.correctedSeconds=0
+        self.uninterruptedLoops=0
+        self.numGroups=0
+        self.currentGroupNumber=0
+        self.currentIteration=0       
         
+    
     def GetProgramStatusString(self):
         s="\n Program Type: "        
         if self.programType == ProgramType.LINEAR:
@@ -130,28 +73,27 @@ class Program:
             s+="Unknown state"
 
         if self.programStatus != ProgramStatus.LOCAL:
-            s+="\n\n            RTC Time: " + self.rtcTime.strftime("%A, %B %d, %Y %H:%M:%S")
-            s+="\n          Start Time: " + self.startTime.strftime("%A, %B %d, %Y %H:%M:%S")
-            s+="\n\n    Program Duration: " + str(self.totalProgramDuration)
-            s+="\n     Elapsed seconds: " + str(self.elapsedSeconds)
-            s+="\n  In program seconds: " + str(self.correctedSeconds)
-            s+="\n Uninterrupted loops: " + str(self.uninterruptedLoops)
-            s+="\n\n Total program steps: " + str(self.numSteps) + "\n"
-            s+="\nCurrent program step: " + str(self.currentStep)
+            s+="\n\n             RTC Time: " + self.rtcTime.strftime("%A, %B %d, %Y %H:%M:%S")
+            s+=  "\n           Start Time: " + self.startTime.strftime("%A, %B %d, %Y %H:%M:%S")
+            s+="\n\n     Program Duration: " + str(self.totalProgramDuration)
+            s+=  "\n      Elapsed seconds: " + str(self.elapsedSeconds)
+            s+=  "\n   In program seconds: " + str(self.correctedSeconds)
+            s+=  "\n  Uninterrupted loops: " + str(self.uninterruptedLoops)
+            s+="\n\n Total program groups: " + str(self.numGroups) + "\n"
         else:
-            s+="\n\n          Start Time: " + self.startTime.strftime("%A, %B %d, %Y %H:%M:%S")
-            s+="\n\n    Program Duration: " + str(self.totalProgramDuration)           
-            s+="\n\n Total program steps: " + str(self.numSteps) + "\n"           
+            s+="\n\n           Start Time: " + self.startTime.strftime("%A, %B %d, %Y %H:%M:%S")
+            s+="\n\n     Program Duration: " + str(self.totalProgramDuration)           
+            s+="\n\n Total program groups: " + str(self.numGroups) + "\n"           
         return s
 
     def GetProgramDataString(self):
         s=""        
-        if self.numSteps < 1:
-            s = "No program steps defined.\n\n"
+        if self.numGroups < 1:
+            s = "No program groups defined.\n\n"
             return s
         else:
-            for i in range(self.numSteps):
-                s+=self.fullProgramSteps[i].GetProgramStepString() +"\n"
+            for i in range(self.numGroups):
+                s+=self.programGroups[i].GetProgramGroupString() +"\n"
             return s
 
     def FillProgramStatus(self,bytesData):
@@ -215,50 +157,61 @@ class Program:
         self.uninterruptedLoops += bytesData[35]<<8    
         self.uninterruptedLoops += bytesData[36] 
 
-    def FillInElapsedTimes(self):
-        if len(self.fullProgramSteps)<1:
-            return
-        self.fullProgramSteps[0].elapsedDurationAtEnd = self.fullProgramSteps[0].time
-        for i in range(1,len(self.fullProgramSteps)):
-            self.fullProgramSteps[i].elapsedDurationAtEnd = self.fullProgramSteps[i-1].elapsedDurationAtEnd + self.fullProgramSteps[i].time
-        self.totalProgramDuration = self.fullProgramSteps[len(self.fullProgramSteps)-1].elapsedDurationAtEnd.total_seconds()
-        self.numSteps = len(self.fullProgramSteps)
-    
     def FillProgramData(self, bytesData):
-        self.fullProgramSteps.clear()
-        numsteps = (int)(len(bytesData)/13)               
-        if numsteps < 1:
-            return 
-        if numsteps ==1 and sum(bytesData)==13:
-            return     
+        self.programGroups.clear()         
+        if len(bytesData) < 10:
+            return  
         indexer=0
-        for i in range(numsteps):           
-            tmp = ProgramStep()
-            tmp.stepNumber = i+1
-            tmp.led1Threshold = int(bytesData[indexer])
-            tmp.led2Threshold = int(bytesData[indexer+1])
-            tmp.led3Threshold = int(bytesData[indexer+2])
-            tmp.led4Threshold = int(bytesData[indexer+3])
-            tmp.frequency = int(bytesData[indexer+4]<<8) + int(bytesData[indexer+5])
-            tmp.dutyCycle = int(bytesData[indexer+6]<<8) + int(bytesData[indexer+7])
-            tmp.triggers = int(bytesData[indexer+8])
-            tmp.duration = int(bytesData[indexer+9]<<24) + int(bytesData[indexer+10]<<16) + int(bytesData[indexer+11]<<8) +int(bytesData[indexer+12])
-            tmp.time = datetime.timedelta(seconds=tmp.duration)
-            tmp.elapsedDurationAtEnd = datetime.timedelta(0)
-            self.fullProgramSteps.append(tmp)
-            indexer+=13
+        self.numGroups = int(bytesData[indexer])
+        for j in range(self.numGroups):
+            tmp = ProgramGroup()
+            tmp.groupNumber=int(bytesData[indexer+1])
+            tmp.numIterations = int(bytesData[indexer+2]<<24) + int(bytesData[indexer+3]<<16) + int(bytesData[indexer+4]<<8) +int(bytesData[indexer+5])
+            tmp.numSteps = int(bytesData[indexer+6])
+            tmp.groupDurationSeconds = int(bytesData[indexer+7]<<24) + int(bytesData[indexer+8]<<16) + int(bytesData[indexer+9]<<8) +int(bytesData[indexer+10])
+            tmp.iterationDurationSeconds = int(bytesData[indexer+11]<<24) + int(bytesData[indexer+12]<<16) + int(bytesData[indexer+13]<<8) +int(bytesData[indexer+14])
+
+            for i in range(tmp.numSteps):           
+                tmp2 = ProgramStep()
+                tmp2.stepNumber = i+1
+                tmp2.led1Threshold = int(bytesData[indexer+15])
+                tmp2.led2Threshold = int(bytesData[indexer+16])
+                tmp2.led3Threshold = int(bytesData[indexer+17])
+                tmp2.led4Threshold = int(bytesData[indexer+18])
+                tmp2.frequency = int(bytesData[indexer+19]<<8) + int(bytesData[indexer+20])
+                tmp2.dutyCycle = int(bytesData[indexer+21])
+                tmp2.triggers = int(bytesData[indexer+22])
+                tmp2.duration = int(bytesData[indexer+23]<<24) + int(bytesData[indexer+24]<<16) + int(bytesData[indexer+25]<<8) +int(bytesData[indexer+26])
+                tmp2.time = datetime.timedelta(seconds=tmp.duration)
+                tmp2.elapsedDurationAtEnd = datetime.timedelta(0)
+                tmp.programSteps.append(tmp2)
+                indexer+=27
+
+            self.programGroups.append(tmp)
         self.FillInElapsedTimes()    
 
+    def FillInElapsedTimes(self):
+        if len(self.numGroups)<1:
+            return
+        self.programGroups[0].elapsedSecondsAtEnd = self.programGroups[0].time
+        for i in range(1,len(self.programGroups)):
+            self.programGroups[i].elapsedDurationAtEnd = self.programGroups[i-1].elapsedDurationAtEnd + self.programGroups[i].time
+        self.totalProgramDuration = self.programGroups[len(self.fullProgramSteps)-1].elapsedDurationAtEnd.total_seconds()
+    def IsProgramIdentical(self, p):
+        if self.programType != p.programType: return False
+        if self.startTime != p.startTime: return False
+        if len(self.programGroups) != len(p.programGroups): return False
+        for j in range(self.numGroups):
+            if(self.programGroups[i].IsGroupIdentical(p.programGroups[i])==False): return False
+        return True
+
     def LoadLocalProgram(self,filePath):
-        isInBlock = False
-        totalBlockIterations=1
         tmp=""
         try:
             readFile = open(filePath,'r')
         except:
             print("\nFile open error. Program not loaded.\n")
             return False    
-
         try:   
             program=readFile.readlines()
             readFile.close()
@@ -267,38 +220,28 @@ class Program:
                 aline = program[i].strip()           
                 if aline[0]=='#':
                     continue
-                if aline[0]=='[' and aline.find(']') != -1:
-                    index = aline.find(']')     
-                    tmp=aline[1:index]       
-                    if tmp.lower() == 'beginblock':
-                        isInBlock=True
-                        totalBlockIterations=1
-                        self.blockProgramSteps.clear()
-                    elif tmp.lower() == 'endblock':
-                        isInBlock=False
-                        for ii in range(totalBlockIterations):
-                            for jj in range(len(self.blockProgramSteps)):
-                                pp = ProgramStep()
-                                pp.CopyProgramStep(self.blockProgramSteps[jj])                            
-                                pp.stepNumber = len(self.fullProgramSteps)+1
-                                self.fullProgramSteps.append(pp)
                 else:
-                    theSplit = aline.split(':')              
-                    if len(theSplit) > 2:
+                    theSplit = aline.split(':')     
+                    if len(theSplit) > 2: # this only happens for the starttime line.  combine the time parts.
                         theSplit[1] += ':' + theSplit[2] + ':' + theSplit[3]
-                    if len(theSplit) >= 2:
-                        if theSplit[0].lower() == 'iterations':
-                            if isInBlock == True:
-                                totalBlockIterations = int(theSplit[1].strip())
+                    if len(theSplit) == 2:
+                        if theSplit[0].lower() == 'group':                    
+                            pg=ProgramGroup()
+                            pg.numIterations=int(theSplit[1].strip())
+                            pg.groupNumber = self.numGroups+1
+                            self.numGroups+=1
+                            self.programGroups.append(pg)       
                         elif theSplit[0].lower() == 'interval':
                             p = ProgramStep()
                             if(p.CopyProgramStepFromString(theSplit[1])==False):
                                 return False
-                            if isInBlock == True:
-                                self.blockProgramSteps.append(p)
-                            else:
-                                p.stepNumber = len(self.fullProgramSteps)+1
-                                self.fullProgramSteps.append(p)
+                            if(self.numGroups==0):
+                                pg=ProgramGroup()
+                                pg.numIterations=1
+                                pg.groupNumber = self.numGroups+1
+                                self.numGroups+=1
+                                self.programGroups.append(pg)       
+                            self.programGroups[self.numGroups-1].AddStep(p)
                         elif theSplit[0].lower() == 'starttime':
                             tmp = theSplit[1].strip()
                             if tmp.find('/') != -1:
@@ -325,6 +268,8 @@ class Program:
             print("\nFile load error. Program not loaded.\n")
             return False  
 
+
+    ## To be updated ...
     def LoadLocalProgramFromString(self,ss):
         isInBlock = False
         totalBlockIterations=1        
@@ -393,20 +338,7 @@ class Program:
             print("\nFile load error. Program not loaded.\n")
             return False   
 
-    def IsProgramIdentical(self, p):
-        if self.programType != p.programType: return False
-        if self.startTime != p.startTime: return False
-        if len(self.fullProgramSteps) != len(p.fullProgramSteps): return False
-        for i in range(len(self.fullProgramSteps)):
-            if self.fullProgramSteps[i].led1Threshold != p.fullProgramSteps[i].led1Threshold: return False 
-            if self.fullProgramSteps[i].led2Threshold != p.fullProgramSteps[i].led2Threshold: return False 
-            if self.fullProgramSteps[i].led3Threshold != p.fullProgramSteps[i].led3Threshold: return False 
-            if self.fullProgramSteps[i].led4Threshold != p.fullProgramSteps[i].led4Threshold: return False 
-            if self.fullProgramSteps[i].frequency != p.fullProgramSteps[i].frequency: return False
-            if self.fullProgramSteps[i].dutyCycle != p.fullProgramSteps[i].dutyCycle: return False
-            if self.fullProgramSteps[i].triggers != p.fullProgramSteps[i].triggers: return False
-            if self.fullProgramSteps[i].duration != p.fullProgramSteps[i].duration: return False
-        return True
+   
 
 if __name__=="__main__" :
     theProgram = Program()

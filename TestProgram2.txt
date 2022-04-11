@@ -2,9 +2,5 @@
 ## followed by 12hours of darkness (the normal night time for us is 8pm-8am)
 ProgramType: Looping
 #StartTime: 08:00:00
-[BeginBlock]
-Iterations: 500
 Interval:0,0,1,1,40,32,0,1
 Interval:0,0,0,0,40,32,0,1
-[EndBlock]
-Interval:0,0,0,0,40,32,0,43200  

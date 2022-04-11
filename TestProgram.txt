@@ -1,4 +1,8 @@
 ProgramType: Looping
 StartTime: 09:00:00
+Group: 3
 Interval:2,2,2,2,40,32,0,5
 Interval:0,0,0,0,40,32,0,5
+Group: 10
+Interval:1,1,1,1,25,50,0,5
+Interval:0,0,0,0,25,50,0,5
