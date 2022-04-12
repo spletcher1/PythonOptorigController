@@ -264,16 +264,14 @@ class Program:
                                 self.programType = ProgramType.CIRCADIAN
                             else:
                                 self.programType = ProgramType.LOOPING
-            self.programStatus = ProgramStatus.LOCAL    
+            self.programStatus = ProgramStatus.LOCAL  
+            self.FillInElapsedTimes()
+            return True       
                                
         except:
             print("\nFile load error. Program not loaded.\n")
             return False  
-        self.FillInElapsedTimes()
-        return True        
-
-
-    ## To be updated ...
+          
     def LoadLocalProgramFromString(self,ss):
         isInBlock = False
         totalBlockIterations=1        
@@ -284,38 +282,28 @@ class Program:
                 aline = program[i].strip()           
                 if aline[0]=='#':
                     continue
-                if aline[0]=='[' and aline.find(']') != -1:
-                    index = aline.find(']')     
-                    tmp=aline[1:index]       
-                    if tmp.lower() == 'beginblock':
-                        isInBlock=True
-                        totalBlockIterations=1
-                        self.blockProgramSteps.clear()
-                    elif tmp.lower() == 'endblock':
-                        isInBlock=False
-                        for ii in range(totalBlockIterations):
-                            for jj in range(len(self.blockProgramSteps)):
-                                pp = ProgramStep()
-                                pp.CopyProgramStep(self.blockProgramSteps[jj])                            
-                                pp.stepNumber = len(self.fullProgramSteps)+1
-                                self.fullProgramSteps.append(pp)
                 else:
-                    theSplit = aline.split(':')              
-                    if len(theSplit) > 2:
+                    theSplit = aline.split(':')     
+                    if len(theSplit) > 2: # this only happens for the starttime line.  combine the time parts.
                         theSplit[1] += ':' + theSplit[2] + ':' + theSplit[3]
-                    if len(theSplit) >= 2:
-                        if theSplit[0].lower() == 'iterations':
-                            if isInBlock == True:
-                                totalBlockIterations = int(theSplit[1].strip())
+                    if len(theSplit) == 2:
+                        if theSplit[0].lower() == 'group':                    
+                            pg=ProgramGroup()
+                            pg.numIterations=int(theSplit[1].strip())
+                            pg.groupNumber = self.numGroups+1
+                            self.numGroups+=1
+                            self.programGroups.append(pg)       
                         elif theSplit[0].lower() == 'interval':
                             p = ProgramStep()
                             if(p.CopyProgramStepFromString(theSplit[1])==False):
                                 return False
-                            if isInBlock == True:
-                                self.blockProgramSteps.append(p)
-                            else:
-                                p.stepNumber = len(self.fullProgramSteps)+1
-                                self.fullProgramSteps.append(p)
+                            if(self.numGroups==0):
+                                pg=ProgramGroup()
+                                pg.numIterations=1
+                                pg.groupNumber = self.numGroups+1
+                                self.numGroups+=1
+                                self.programGroups.append(pg)       
+                            self.programGroups[self.numGroups-1].AddStep(p)
                         elif theSplit[0].lower() == 'starttime':
                             tmp = theSplit[1].strip()
                             if tmp.find('/') != -1:
@@ -335,9 +323,9 @@ class Program:
                                 self.programType = ProgramType.CIRCADIAN
                             else:
                                 self.programType = ProgramType.LOOPING
-            self.programStatus = ProgramStatus.LOCAL   
+            self.programStatus = ProgramStatus.LOCAL  
             self.FillInElapsedTimes()
-            return True
+            return True     
         except:
             print("\nFile load error. Program not loaded.\n")
             return False   
