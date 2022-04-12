@@ -191,12 +191,15 @@ class Program:
         self.FillInElapsedTimes()    
 
     def FillInElapsedTimes(self):
-        if len(self.numGroups)<1:
-            return
-        self.programGroups[0].elapsedSecondsAtEnd = self.programGroups[0].time
-        for i in range(1,len(self.programGroups)):
-            self.programGroups[i].elapsedDurationAtEnd = self.programGroups[i-1].elapsedDurationAtEnd + self.programGroups[i].time
-        self.totalProgramDuration = self.programGroups[len(self.fullProgramSteps)-1].elapsedDurationAtEnd.total_seconds()
+        if self.numGroups<1:
+            self.totalProgramDuration=0
+            return             
+        self.programGroups[0].elapsedSecondsAtEnd = self.programGroups[0].time        
+        for i in range(1,len(self.programGroups)):                 
+            self.programGroups[i].elapsedSecondsAtEnd = self.programGroups[i-1].elapsedSecondsAtEnd + self.programGroups[i].time
+        self.totalProgramDuration = self.programGroups[len(self.programGroups)-1].elapsedSecondsAtEnd.total_seconds()
+
+
     def IsProgramIdentical(self, p):
         if self.programType != p.programType: return False
         if self.startTime != p.startTime: return False
@@ -261,12 +264,13 @@ class Program:
                                 self.programType = ProgramType.CIRCADIAN
                             else:
                                 self.programType = ProgramType.LOOPING
-            self.programStatus = ProgramStatus.LOCAL   
-            self.FillInElapsedTimes()
-            return True
+            self.programStatus = ProgramStatus.LOCAL    
+                               
         except:
             print("\nFile load error. Program not loaded.\n")
             return False  
+        self.FillInElapsedTimes()
+        return True        
 
 
     ## To be updated ...
