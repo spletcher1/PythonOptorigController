@@ -13,7 +13,7 @@ class ProgramStep:
         self.dutyCycle=8
         self.duration=60
         self.triggers=0
-        self.elapsedSecondsAtEnd=datetime.timedelta(0)
+        self.elapsedSecondsAtEnd=0
         self.time=datetime.timedelta(seconds=self.duration)
 
     def IsStepIdentical(self, s):
@@ -25,6 +25,7 @@ class ProgramStep:
         if self.dutyCycle != s.dutyCycle: return False
         if self.triggers != s.triggers: return False
         if self.duration != s.duration: return False
+        if self.elapsedSecondsAtEnd != s.elapsedSecondsAtEnd: return False
         return True
     
     def CopyProgramStep(self,p):
@@ -36,7 +37,7 @@ class ProgramStep:
         self.dutyCycle = p.dutyCycle
         self.duration = p.duration
         self.triggers = p.triggers
-        self.elapsedSecondsAtEnd=datetime.timedelta(0)
+        self.elapsedSecondsAtEnd=p.elapsedSecondsAtEnd
         self.time=datetime.timedelta(seconds=self.duration)
         self.stepNumber = p.stepNumber
 
@@ -52,7 +53,7 @@ class ProgramStep:
                 self.dutyCycle = int(theSplit[5])
                 self.triggers = int(theSplit[6])
                 self.duration = int(theSplit[7])
-                self.elapsedSecondsAtEnd=datetime.timedelta(seconds=self.duration)
+                self.elapsedSecondsAtEnd=self.duration
                 self.time=datetime.timedelta(seconds=self.duration)
                 self.stepNumber = 0
                 return True
@@ -62,7 +63,7 @@ class ProgramStep:
             return False
 
     def GetProgramStepString(self):
-        s = '   Step = {:<3d}  Thresholds = {:<1d},{:<1d},{:<1d},{:<1d}  Freq = {:<3d}  Duty Cycle = {:<3d}  Triggers = {:<2d}  Duration = {:<5d}  Elapsed = {:<5.0f}'.format(self.stepNumber,self.led1Threshold,self.led2Threshold,self.led3Threshold,self.led4Threshold,self.frequency,self.dutyCycle,self.triggers,self.duration,self.elapsedSecondsAtEnd.total_seconds())
+        s = '   Step = {:<3d}  Thresholds = {:<1d},{:<1d},{:<1d},{:<1d}  Freq = {:<3d}  Duty Cycle = {:<3d}  Triggers = {:<2d}  Duration = {:<5d}  Elapsed = {:<5.0f}'.format(self.stepNumber,self.led1Threshold,self.led2Threshold,self.led3Threshold,self.led4Threshold,self.frequency,self.dutyCycle,self.triggers,self.duration,self.elapsedSecondsAtEnd)
       
         return s
 

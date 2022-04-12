@@ -151,21 +151,22 @@ class OptoLifespanRig:
         else:
             self.remoteProgram.FillProgramData(decodedResult2)        
             return True
+
     def UpdateRemoteProgram(self):
         if self.UpdateRemoteProgramStatus():
             time.sleep(.5)
-            return True
-            #if self.UpdateRemoteProgramData():
-            #    return True
-            #else:
-            #    return False
+            if self.UpdateRemoteProgramData():
+                self.remoteProgram.FillInProgram()
+                return True
+            else:
+                return False
         else:            
             return False
 
     def GetRemoteProgramString(self):        
         if self.UpdateRemoteProgram():
             s1 = self.remoteProgram.GetProgramStatusString()
-            #s2 = self.remoteProgram.GetProgramDataString()   
+            s2 = self.remoteProgram.GetProgramDataString()   
             s2="hi"     
             return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
         else:

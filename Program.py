@@ -157,6 +157,8 @@ class Program:
         self.uninterruptedLoops += bytesData[35]<<8    
         self.uninterruptedLoops += bytesData[36] 
 
+    ## Note that this must be called after FillProgramStatus to ensure the correct
+    ## number of groups is already known. (Applies to V6+)
     def FillProgramData(self, bytesData):
         self.programGroups.clear()         
         if len(bytesData) < 10:
@@ -170,34 +172,54 @@ class Program:
             tmp.numSteps = int(bytesData[indexer+6])
             tmp.groupDurationSeconds = int(bytesData[indexer+7]<<24) + int(bytesData[indexer+8]<<16) + int(bytesData[indexer+9]<<8) +int(bytesData[indexer+10])
             tmp.iterationDurationSeconds = int(bytesData[indexer+11]<<24) + int(bytesData[indexer+12]<<16) + int(bytesData[indexer+13]<<8) +int(bytesData[indexer+14])
-
+            tmp.elapsedSecondsAtStart = int(bytesData[indexer+15]<<24) + int(bytesData[indexer+16]<<16) + int(bytesData[indexer+17]<<8) +int(bytesData[indexer+18])
+            tmp.elapsedSecondsAtEnd = int(bytesData[indexer+19]<<24) + int(bytesData[indexer+20]<<16) + int(bytesData[indexer+21]<<8) +int(bytesData[indexer+22])
             for i in range(tmp.numSteps):           
                 tmp2 = ProgramStep()
                 tmp2.stepNumber = i+1
-                tmp2.led1Threshold = int(bytesData[indexer+15])
-                tmp2.led2Threshold = int(bytesData[indexer+16])
-                tmp2.led3Threshold = int(bytesData[indexer+17])
-                tmp2.led4Threshold = int(bytesData[indexer+18])
-                tmp2.frequency = int(bytesData[indexer+19]<<8) + int(bytesData[indexer+20])
-                tmp2.dutyCycle = int(bytesData[indexer+21])
-                tmp2.triggers = int(bytesData[indexer+22])
-                tmp2.duration = int(bytesData[indexer+23]<<24) + int(bytesData[indexer+24]<<16) + int(bytesData[indexer+25]<<8) +int(bytesData[indexer+26])
+                tmp2.led1Threshold = int(bytesData[indexer+23])
+                tmp2.led2Threshold = int(bytesData[indexer+24])
+                tmp2.led3Threshold = int(bytesData[indexer+25])
+                tmp2.led4Threshold = int(bytesData[indexer+26])
+                tmp2.frequency = int(bytesData[indexer+27]<<8) + int(bytesData[indexer+28])
+                tmp2.dutyCycle = int(bytesData[indexer+29])
+                tmp2.triggers = int(bytesData[indexer+30])
+                tmp2.duration = int(bytesData[indexer+31]<<24) + int(bytesData[indexer+32]<<16) + int(bytesData[indexer+33]<<8) +int(bytesData[indexer+34])
+                tmp2.elapsedSecondsAtEnd = int(bytesData[indexer+31]<<24) + int(bytesData[indexer+32]<<16) + int(bytesData[indexer+33]<<8) +int(bytesData[indexer+34])
                 tmp2.time = datetime.timedelta(seconds=tmp.duration)
-                tmp2.elapsedDurationAtEnd = datetime.timedelta(0)
-                tmp.programSteps.append(tmp2)
-                indexer+=27
+                tmp.AddStep(tmp2,False)
+                indexer+=35
 
             self.programGroups.append(tmp)
-        self.FillInElapsedTimes()    
 
-    def FillInElapsedTimes(self):
+    def FillInProgram(self):
+        if(self.programStatus == ProgramStatus.LOCAL):
+            self.FillInLocalProgramElapsedTimes()
+        else:
+            self.FillInRemoteProgramElapsedTimes()
+    
+    
+    
+    ## There is a separate function for remote programs
+    ## to avoid overwriting what is on the rig and losing information
+    ## that would ensure correctness
+    def FillInRemoteProgramElapsedTimes(self):
+        if self.numGroups<1:
+            self.totalProgramDuration=0
+            return    
+        ## Everything else is computed on the board and sent here for checking.
+
+    def FillInLocalProgramElapsedTimes(self):
         if self.numGroups<1:
             self.totalProgramDuration=0
             return             
-        self.programGroups[0].elapsedSecondsAtEnd = self.programGroups[0].time        
+        self.programGroups[0].elapsedSecondsAtStart=0
+        self.programGroups[0].elapsedSecondsAtEnd = int(self.programGroups[0].time.total_seconds())
+    
         for i in range(1,len(self.programGroups)):                 
-            self.programGroups[i].elapsedSecondsAtEnd = self.programGroups[i-1].elapsedSecondsAtEnd + self.programGroups[i].time
-        self.totalProgramDuration = self.programGroups[len(self.programGroups)-1].elapsedSecondsAtEnd.total_seconds()
+            self.programGroups[i].elapsedSecondsAtEnd = int(self.programGroups[i-1].elapsedSecondsAtEnd + self.programGroups[i].time.total_seconds())
+            self.programGroups[i].elapsedSecondsAtStart=int(self.programGroups[i-1].elapsedSecondsAtEnd)
+        self.totalProgramDuration = self.programGroups[len(self.programGroups)-1].elapsedSecondsAtEnd
 
 
     def IsProgramIdentical(self, p):
@@ -244,7 +266,7 @@ class Program:
                                 pg.groupNumber = self.numGroups+1
                                 self.numGroups+=1
                                 self.programGroups.append(pg)       
-                            self.programGroups[self.numGroups-1].AddStep(p)
+                            self.programGroups[self.numGroups-1].AddStep(p,True)
                         elif theSplit[0].lower() == 'starttime':
                             tmp = theSplit[1].strip()
                             if tmp.find('/') != -1:
@@ -265,7 +287,7 @@ class Program:
                             else:
                                 self.programType = ProgramType.LOOPING
             self.programStatus = ProgramStatus.LOCAL  
-            self.FillInElapsedTimes()
+            self.FillInProgram()
             return True       
                                
         except:
@@ -303,7 +325,7 @@ class Program:
                                 pg.groupNumber = self.numGroups+1
                                 self.numGroups+=1
                                 self.programGroups.append(pg)       
-                            self.programGroups[self.numGroups-1].AddStep(p)
+                            self.programGroups[self.numGroups-1].AddStep(p,True)
                         elif theSplit[0].lower() == 'starttime':
                             tmp = theSplit[1].strip()
                             if tmp.find('/') != -1:
@@ -324,7 +346,7 @@ class Program:
                             else:
                                 self.programType = ProgramType.LOOPING
             self.programStatus = ProgramStatus.LOCAL  
-            self.FillInElapsedTimes()
+            self.FillInProgram()
             return True     
         except:
             print("\nFile load error. Program not loaded.\n")
