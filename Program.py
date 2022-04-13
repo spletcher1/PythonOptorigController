@@ -176,8 +176,7 @@ class Program:
     ## Note that this must be called after FillProgramStatus to ensure the correct
     ## number of groups is already known. (Applies to V6+)
     def FillProgramData(self, bytesData):            
-        self.programGroups.clear()         
-        print(bytesData)
+        self.programGroups.clear()                 
         if len(bytesData) < 10:
             return True          
         indexer=0 

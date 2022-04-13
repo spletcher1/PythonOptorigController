@@ -54,7 +54,7 @@ class COMChoiceWindow(QtWidgets.QDialog):
         
 class MyMainWindow(QtWidgets.QMainWindow):
     def __init__( self):   
-        self.version ="4.0.3"
+        self.version ="7.0.0"
         self.theRig = Rig.OptoLifespanRig(1)
         super(MyMainWindow,self).__init__()        
         uic.loadUi("mainwindow.ui",self)
