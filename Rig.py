@@ -255,10 +255,7 @@ class OptoLifespanRig:
             else:
                 actualSteps = pg.numSteps
 
-            ba[currentbyteindex+4] =  actualSteps
-
-            print(ba[currentbyteindex+4])
-
+            ba[currentbyteindex+4] =  actualSteps            
             bindex2=currentbyteindex+5
             for j in range(actualSteps):                
                 p = pg.programSteps[j]

@@ -6,7 +6,7 @@ import datetime
 import sys
 
 theRig = Rig.OptoLifespanRig(1)
-version ="4.0.3"
+version ="7.0.0"
 
 def ChooseSerialPort(optoRig):
     while True:

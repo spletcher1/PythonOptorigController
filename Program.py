@@ -177,11 +177,13 @@ class Program:
     ## number of groups is already known. (Applies to V6+)
     def FillProgramData(self, bytesData):            
         self.programGroups.clear()         
+        print(bytesData)
         if len(bytesData) < 10:
-            return          
+            return True          
         indexer=0 
         indexer2=0       
-        self.numGroups = int(bytesData[indexer])               
+        self.numGroups = int(bytesData[indexer])      
+        
         for j in range(self.numGroups):            
             tmp = ProgramGroup()
             tmp.groupNumber=int(bytesData[indexer+1])
