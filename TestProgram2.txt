@@ -2,5 +2,9 @@
 ## followed by 12hours of darkness (the normal night time for us is 8pm-8am)
 ProgramType: Looping
 #StartTime: 08:00:00
-Interval:0,0,1,1,40,32,0,10
-Interval:0,0,0,0,40,32,0,8
+Group: 2
+Interval:1,1,1,1,40,32,0,5
+Interval:0,0,0,0,40,32,0,10
+Group: 2
+Interval:1,1,1,1,5,50,0,5
+Interval:0,0,0,0,5,50,0,10

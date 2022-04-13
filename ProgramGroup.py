@@ -24,18 +24,19 @@ class ProgramGroup:
         return True
 
     def AddStep(self,step,isProgramLocal):     
-        step.stepNumber=self.numSteps   
+        if(isProgramLocal):
+            step.stepNumber=self.numSteps   
         self.programSteps.append(step)
         self.numSteps+=1
         self.UpdateTimes(isProgramLocal)
 
     def GetProgramGroupString(self):
-        s='*** Starting at {:d} seconds\n'.format(self.elapsedSecondsAtStart)
+        s='*** Starting at {:d} in program seconds\n'.format(self.elapsedSecondsAtStart)
         s+= 'Group = {:<3d}  Iterations = {:<5d}  I_Duration = {:<5d}  G_Duration = {:<5d}  Elapsed = {:<5d} '.format(self.groupNumber,self.numIterations,self.iterationDurationSeconds,self.groupDurationSeconds,self.elapsedSecondsAtEnd) + "\n"
         if(self.numSteps<1):
             s+= "So steps defined.\n"
         else:
-            for i in range(self.numSteps):
+            for i in range(self.numSteps):                
                 s+=self.programSteps[i].GetProgramStepString() +"\n"
         return s
 

@@ -30,6 +30,7 @@ class Program:
         self.rtcTime = datetime.datetime(1,1,1)
         self.numGroups=0
         self.currentGroupNumber=-1
+        self.currentStepNumber=-1
         self.currentIteration=0       
         self.programGroups = []
 
@@ -80,10 +81,13 @@ class Program:
             s+=  "\n   In program seconds: " + str(self.correctedSeconds)
             s+=  "\n  Uninterrupted loops: " + str(self.uninterruptedLoops)
             s+="\n\n Total program groups: " + str(self.numGroups) + "\n"
+            s+=  "\n        Current Group: " + str(self.currentGroupNumber)     
+            s+=  "\n    Current Iteration: " + str(self.currentIteration)     
+            s+=  "\n         Current Step: " + str(self.currentStepNumber)     
         else:
             s+="\n\n           Start Time: " + self.startTime.strftime("%A, %B %d, %Y %H:%M:%S")
             s+="\n\n     Program Duration: " + str(self.totalProgramDuration)           
-            s+="\n\n Total program groups: " + str(self.numGroups) + "\n"           
+            s+="\n\n Total program groups: " + str(self.numGroups) + "\n"               
         return s
 
     def GetProgramDataString(self):
@@ -150,8 +154,7 @@ class Program:
         self.currentIteration += bytesData[30]<<8    
         self.currentIteration += bytesData[31] 
         
-        self.numSteps += bytesData[32]    
-        
+        self.currentStepNumber = bytesData[32]            
         self.uninterruptedLoops = bytesData[33]<<24    
         self.uninterruptedLoops += bytesData[34]<<16    
         self.uninterruptedLoops += bytesData[35]<<8    
@@ -159,38 +162,45 @@ class Program:
 
     ## Note that this must be called after FillProgramStatus to ensure the correct
     ## number of groups is already known. (Applies to V6+)
-    def FillProgramData(self, bytesData):
+    def FillProgramData(self, bytesData):            
         self.programGroups.clear()         
         if len(bytesData) < 10:
-            return  
-        indexer=0
-        self.numGroups = int(bytesData[indexer])
-        for j in range(self.numGroups):
+            return          
+        indexer=0 
+        indexer2=0       
+        self.numGroups = int(bytesData[indexer])               
+        for j in range(self.numGroups):            
             tmp = ProgramGroup()
             tmp.groupNumber=int(bytesData[indexer+1])
+            #print('Group number {:<5d}'.format(tmp.groupNumber))
             tmp.numIterations = int(bytesData[indexer+2]<<24) + int(bytesData[indexer+3]<<16) + int(bytesData[indexer+4]<<8) +int(bytesData[indexer+5])
-            tmp.numSteps = int(bytesData[indexer+6])
+            tmp_numSteps = int(bytesData[indexer+6])                     
             tmp.groupDurationSeconds = int(bytesData[indexer+7]<<24) + int(bytesData[indexer+8]<<16) + int(bytesData[indexer+9]<<8) +int(bytesData[indexer+10])
+            #print('Group duration {:<5d}'.format(tmp.groupDurationSeconds))
             tmp.iterationDurationSeconds = int(bytesData[indexer+11]<<24) + int(bytesData[indexer+12]<<16) + int(bytesData[indexer+13]<<8) +int(bytesData[indexer+14])
+            #print('Iter duration {:<5d}'.format(tmp.iterationDurationSeconds))
             tmp.elapsedSecondsAtStart = int(bytesData[indexer+15]<<24) + int(bytesData[indexer+16]<<16) + int(bytesData[indexer+17]<<8) +int(bytesData[indexer+18])
-            tmp.elapsedSecondsAtEnd = int(bytesData[indexer+19]<<24) + int(bytesData[indexer+20]<<16) + int(bytesData[indexer+21]<<8) +int(bytesData[indexer+22])
-            for i in range(tmp.numSteps):           
+            tmp.elapsedSecondsAtEnd = int(bytesData[indexer+19]<<24) + int(bytesData[indexer+20]<<16) + int(bytesData[indexer+21]<<8) +int(bytesData[indexer+22])    
+            indexer2 = indexer+23
+            for i in range(tmp_numSteps):                        
                 tmp2 = ProgramStep()
-                tmp2.stepNumber = i+1
-                tmp2.led1Threshold = int(bytesData[indexer+23])
-                tmp2.led2Threshold = int(bytesData[indexer+24])
-                tmp2.led3Threshold = int(bytesData[indexer+25])
-                tmp2.led4Threshold = int(bytesData[indexer+26])
-                tmp2.frequency = int(bytesData[indexer+27]<<8) + int(bytesData[indexer+28])
-                tmp2.dutyCycle = int(bytesData[indexer+29])
-                tmp2.triggers = int(bytesData[indexer+30])
-                tmp2.duration = int(bytesData[indexer+31]<<24) + int(bytesData[indexer+32]<<16) + int(bytesData[indexer+33]<<8) +int(bytesData[indexer+34])
-                tmp2.elapsedSecondsAtEnd = int(bytesData[indexer+31]<<24) + int(bytesData[indexer+32]<<16) + int(bytesData[indexer+33]<<8) +int(bytesData[indexer+34])
-                tmp2.time = datetime.timedelta(seconds=tmp.duration)
-                tmp.AddStep(tmp2,False)
-                indexer+=35
-
+                tmp2.stepNumber = int(bytesData[indexer2])                
+                tmp2.led1Threshold = int(bytesData[indexer2+1])
+                tmp2.led2Threshold = int(bytesData[indexer2+2])
+                tmp2.led3Threshold = int(bytesData[indexer2+3])
+                tmp2.led4Threshold = int(bytesData[indexer2+4])
+                tmp2.frequency = int(bytesData[indexer2+5]<<8) + int(bytesData[indexer2+6])
+                tmp2.dutyCycle = int(bytesData[indexer2+7])
+                tmp2.triggers = int(bytesData[indexer2+8])
+                tmp2.duration = int(bytesData[indexer2+9]<<24) + int(bytesData[indexer2+10]<<16) + int(bytesData[indexer2+11]<<8) +int(bytesData[indexer2+12])
+                tmp2.elapsedSecondsAtEnd = int(bytesData[indexer2+13]<<24) + int(bytesData[indexer2+14]<<16) + int(bytesData[indexer2+15]<<8) +int(bytesData[indexer2+16])
+                tmp2.time = datetime.timedelta(seconds=tmp2.duration)
+                #print(tmp2.GetProgramStepString())
+                tmp.AddStep(tmp2,False)                
+                indexer2+=17
+            indexer=indexer2-1                
             self.programGroups.append(tmp)
+        return True
 
     def FillInProgram(self):
         if(self.programStatus == ProgramStatus.LOCAL):
@@ -226,7 +236,7 @@ class Program:
         if self.programType != p.programType: return False
         if self.startTime != p.startTime: return False
         if len(self.programGroups) != len(p.programGroups): return False
-        for j in range(self.numGroups):
+        for i in range(self.numGroups):
             if(self.programGroups[i].IsGroupIdentical(p.programGroups[i])==False): return False
         return True
 

@@ -27,8 +27,8 @@ class OptoLifespanRig:
             time.sleep(0.10)                      
         return False
     def GetListOfOnlineRigs(self):
-        rigNumbers=range(1,30)
-        #rigNumbers=range(1,2)
+        #rigNumbers=range(1,30)
+        rigNumbers=range(1,2)
         results = {}        
         for num in rigNumbers:
             self.ID = num
@@ -140,17 +140,13 @@ class OptoLifespanRig:
         self.thePort.SetTimeOut(20)
         result = self.thePort.ReadCOBSPacket(30000)    
         decodedResult = cobs.decode(result) 
-        self.thePort.SetTimeOut(tmp)
+        self.thePort.SetTimeOut(tmp)       
         if (len(decodedResult)==0):
             return False      
         if(decodedResult[0]!=0xFE):
             return False  
         decodedResult2 = decodedResult[1:]
-        if (len(decodedResult2) % 13 != 0):
-            return False
-        else:
-            self.remoteProgram.FillProgramData(decodedResult2)        
-            return True
+        return self.remoteProgram.FillProgramData(decodedResult2)                    
 
     def UpdateRemoteProgram(self):
         if self.UpdateRemoteProgramStatus():
@@ -166,8 +162,7 @@ class OptoLifespanRig:
     def GetRemoteProgramString(self):        
         if self.UpdateRemoteProgram():
             s1 = self.remoteProgram.GetProgramStatusString()
-            s2 = self.remoteProgram.GetProgramDataString()   
-            s2="hi"     
+            s2 = self.remoteProgram.GetProgramDataString()               
             return "\n***Current Remote Program***\n"+ s1 + "\n\n" + s2
         else:
             return "Get program update failed.\n"
