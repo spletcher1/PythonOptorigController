@@ -48,6 +48,19 @@ class Program:
         self.currentIteration=0       
         
     
+    def GetTotalSteps(self):
+        steps=0
+        for i in self.programGroups:
+            steps+=i.numSteps
+        return steps
+
+    def GetMaxStepsPerGroup(self):
+        steps=0
+        for i in self.programGroups:
+            if(steps<i.numSteps):
+                steps = i.numSteps
+        return steps
+
     def GetProgramStatusString(self):
         s="\n Program Type: "        
         if self.programType == ProgramType.LINEAR:
@@ -371,6 +384,7 @@ if __name__=="__main__" :
     theProgram.LoadLocalProgram(sys.argv[1])
     print(theProgram.GetProgramStatusString())
     print(theProgram.GetProgramDataString())
+    print(theProgram.GetTotalSteps())
 
 
 

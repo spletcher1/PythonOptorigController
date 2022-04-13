@@ -13,7 +13,7 @@ class ProgramGroup:
         self.iterationDurationSeconds=0
         self.elapsedSecondsAtEnd=0
         self.time=datetime.timedelta(seconds=self.groupDurationSeconds)
-        self.currentStep=0
+        self.currentStep=0    
 
     def IsGroupIdentical(self, g):
         if(self.groupDurationSeconds!=g.groupDurationSeconds): return False
@@ -34,7 +34,7 @@ class ProgramGroup:
         s='*** Starting at {:d} in program seconds\n'.format(self.elapsedSecondsAtStart)
         s+= 'Group = {:<3d}  Iterations = {:<5d}  I_Duration = {:<5d}  G_Duration = {:<5d}  Elapsed = {:<5d} '.format(self.groupNumber,self.numIterations,self.iterationDurationSeconds,self.groupDurationSeconds,self.elapsedSecondsAtEnd) + "\n"
         if(self.numSteps<1):
-            s+= "So steps defined.\n"
+            s+= "No steps defined.\n"
         else:
             for i in range(self.numSteps):                
                 s+=self.programSteps[i].GetProgramStepString() +"\n"

@@ -129,6 +129,7 @@ class OptoLifespanRig:
         decodedResult2 = decodedResult[1:]                   
         self.remoteProgram.FillProgramStatus(decodedResult2)          
         return True    
+
     def UpdateRemoteProgramData(self):
         ba = bytearray(4)        
         ba[0]=3
@@ -202,8 +203,21 @@ class OptoLifespanRig:
             return "No RTC"
 
     def UploadLocalProgram(self): 
-        maxProgramSteps=2000
-        ba = bytearray(13*maxProgramSteps+100)    
+        maxProgramGroups=40
+        maxStepsPerGroup=50
+        
+        if (self.localProgram.numGroups > maxProgramGroups):
+            maxGroupIndex = maxProgramGroups
+            print("Maximum groups exceeded.  Only uploading first 40.")
+        else:
+            maxGroupIndex = self.localProgram.numGroups
+
+        if (self.localProgram.GetMaxStepsPerGroup() > maxStepsPerGroup):            
+            print("Maximum steps exceeded.  Only uploading first 50.")
+        
+        totalSteps = self.localProgram.GetTotalSteps()
+        ba = bytearray(13*totalSteps+10*self.localProgram.numGroups+13)    
+
         ba[0]=self.ID   
         ba[1]=0x0A     
         if self.localProgram.programType == Program.ProgramType.LINEAR:
@@ -222,31 +236,50 @@ class OptoLifespanRig:
         ba[7]=tmp[4]
         ba[8]=tmp[5]
                 
-        if len(self.localProgram.fullProgramSteps) > maxProgramSteps:
-            maxIndex = maxProgramSteps
-            print("Maximum steps exceeded.  Only uploading first 1500.")
-        else:
-            maxIndex = len(self.localProgram.fullProgramSteps)
-        currentbyteindex=9
-        for index in range(maxIndex):
-            p=self.localProgram.fullProgramSteps[index]
-            ba[currentbyteindex]=p.led1Threshold
-            ba[currentbyteindex+1]=p.led2Threshold
-            ba[currentbyteindex+2]=p.led3Threshold
-            ba[currentbyteindex+3]=p.led4Threshold
-            tmp = p.frequency.to_bytes(2,byteorder='big')
-            ba[currentbyteindex+4]=tmp[0]
-            ba[currentbyteindex+5]=tmp[1]
-            tmp = p.dutyCycle.to_bytes(2,byteorder='big')
-            ba[currentbyteindex+6]=tmp[0]
-            ba[currentbyteindex+7]=tmp[1]
-            ba[currentbyteindex+8]=p.triggers
-            tmp = p.duration.to_bytes(4,byteorder='big')
-            ba[currentbyteindex+9]=tmp[0]
-            ba[currentbyteindex+10]=tmp[1]
-            ba[currentbyteindex+11]=tmp[2]
-            ba[currentbyteindex+12]=tmp[3]
-            currentbyteindex+=13          
+       
+        ba[9]=maxGroupIndex
+
+        currentbyteindex=10
+        for i in range(maxGroupIndex):
+            pg = self.localProgram.programGroups[i]
+
+            tmp = pg.numIterations.to_bytes(4,byteorder='big')
+            ba[currentbyteindex] = tmp[0]
+            ba[currentbyteindex+1] =  tmp[1]
+            ba[currentbyteindex+2] =  tmp[2]
+            ba[currentbyteindex+3] =  tmp[3]
+
+            actualSteps=0
+            if(pg.numSteps>maxStepsPerGroup):
+                actualSteps = maxStepsPerGroup
+            else:
+                actualSteps = pg.numSteps
+
+            ba[currentbyteindex+4] =  actualSteps
+
+            print(ba[currentbyteindex+4])
+
+            bindex2=currentbyteindex+5
+            for j in range(actualSteps):                
+                p = pg.programSteps[j]
+                ba[bindex2]=p.stepNumber
+                ba[bindex2+1]=p.led1Threshold
+                ba[bindex2+2]=p.led2Threshold
+                ba[bindex2+3]=p.led3Threshold
+                ba[bindex2+4]=p.led4Threshold
+                tmp = p.frequency.to_bytes(2,byteorder='big')
+                ba[bindex2+5]=tmp[0]
+                ba[bindex2+6]=tmp[1]
+                tmp = p.dutyCycle.to_bytes(1,byteorder='big')
+                ba[bindex2+7]=tmp[0]                
+                ba[bindex2+8]=p.triggers & 0xFF
+                tmp = p.duration.to_bytes(4,byteorder='big')
+                ba[bindex2+9]=tmp[0]
+                ba[bindex2+10]=tmp[1]
+                ba[bindex2+11]=tmp[2]
+                ba[bindex2+12]=tmp[3]
+                bindex2+=13          
+            currentbyteindex=bindex2
 
         ba=ba[0:currentbyteindex]     
         encodedba=cobs.encode(ba)        
@@ -257,6 +290,7 @@ class OptoLifespanRig:
             return True
         else:
             return False
+
     def AreLocalAndRemoteProgramsIdentical(self):
         return self.localProgram.IsProgramIdentical(self.remoteProgram)
     def LoadLocalProgram(self,filePath):
