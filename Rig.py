@@ -320,10 +320,10 @@ class OptoLifespanRig:
             s+="          UART receive error: True\n"
         else:
             s+="          UART receive error: False\n"
-        #if self.currentErrors & 0x04:
-        #    s+="                   TBD error: True\n"
-        #else:
-        #    s+="                   TBD error: False\n"
+        if self.currentErrors & 0x04:
+            s+="            Group/Step error: True\n"
+        else:
+            s+="            Group/Step error: False\n"
         if self.currentErrors & 0x08:
             s+="     Command not found error: True\n"
         else:
