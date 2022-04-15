@@ -234,8 +234,7 @@ class OptoLifespanRig:
         ba[5]=tmp[2]
         ba[6]=tmp[3]
         ba[7]=tmp[4]
-        ba[8]=tmp[5]
-                
+        ba[8]=tmp[5]       
        
         ba[9]=maxGroupIndex
 

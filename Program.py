@@ -271,8 +271,9 @@ class Program:
                     continue
                 else:
                     theSplit = aline.split(':')     
-                    if len(theSplit) > 2: # this only happens for the starttime line.  combine the time parts.
+                    if len(theSplit) == 4: # this only happens for the starttime line.  combine the time parts.
                         theSplit[1] += ':' + theSplit[2] + ':' + theSplit[3]
+                        theSplit=theSplit[0:2]
                     if len(theSplit) == 2:
                         if theSplit[0].lower() == 'group':                    
                             pg=ProgramGroup()
@@ -299,7 +300,7 @@ class Program:
                                 tmp2 = datetime.datetime.strptime(tmp,"%H:%M:%S")
                                 tmp2 = tmp2.time()
                                 tmp3 = datetime.date.today()
-                                self.startTime = datetime.datetime.combine(tmp3,tmp2)
+                                self.startTime = datetime.datetime.combine(tmp3,tmp2)                                
                         elif theSplit[0].lower() == 'programtype':
                             ss = theSplit[1].strip()
                             if ss.lower() == 'linear':
