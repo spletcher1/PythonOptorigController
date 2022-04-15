@@ -300,7 +300,7 @@
           <item row="2" column="0">
            <widget class="QCheckBox" name="Error3CheckBox">
             <property name="text">
-             <string>TBD</string>
+             <string>Group/Step</string>
             </property>
             <property name="checkable">
              <bool>false</bool>
