@@ -16,23 +16,24 @@ class OptoLifespanRig:
         self.localProgram = Program.Program()
         self.currentErrors=0
     def SetAsFirstRigInList(self):
-        rigNumbers=range(1,30)        
+        rigNumbers=range(1,3)        
         results = {}        
         for num in rigNumbers:
             self.ID = num
             tmp=self.GetVersionInformationString()            
+            
             if tmp!="No response" :              
                 self.ID = num              
                 return True
             time.sleep(0.10)                      
         return False
     def GetListOfOnlineRigs(self):
-        rigNumbers=range(1,30)
+        rigNumbers=range(1,3)
         #rigNumbers=range(1,2)
         results = {}        
         for num in rigNumbers:
             self.ID = num
-            tmp=self.GetVersionInformationString()            
+            tmp=self.GetVersionInformationString()                        
             if tmp!="No response" :              
                 results[num] = tmp              
             time.sleep(0.10)                      
@@ -102,9 +103,9 @@ class OptoLifespanRig:
         ba[2]=0x07
         ba[3]=self.endByte
         tmp = self.thePort.GetTimeOut() 
-        self.thePort.SetTimeOut(0.05)
+        self.thePort.SetTimeOut(1)
         self.thePort.WriteByteArray(ba)
-        result = self.thePort.ReadCOBSPacket(10)             
+        result = self.thePort.ReadCOBSPacket(10)           
         self.thePort.SetTimeOut(tmp)   
         if(len(result)==0):
             return "No response"

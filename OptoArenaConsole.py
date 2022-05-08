@@ -6,11 +6,15 @@ import datetime
 import sys
 
 theRig = Rig.OptoLifespanRig(1)
-version ="4.0.3"
+version ="4.0.5"
 
 def ChooseSerialPort(optoRig):
     while True:
         ports=optoRig.thePort.GetAvailablePorts()
+        if(len(ports)==1):
+            print('Port opened.')    
+            optoRig.thePort.Open(ports[0])
+            return
         print('Please choose available serial port:')
         index=1
         for p in ports:
@@ -174,8 +178,11 @@ def HelpCommand():
     print("             'Exit' or 'Quit': Quit the app.\n\n")
 
 def main():        
-    ChooseSerialPort(theRig)
-    ChooseOptoRig(theRig)            
+    ChooseSerialPort(theRig) 
+    if(theRig.SetAsFirstRigInList()):
+        print("Yellow controller board found.")
+        FirmwareCommand()
+    ##ChooseOptoRig(theRig)            
     command="none"
     while command.lower() != "exit" and command.lower() != "quit":
         commandLine=input('> ')
