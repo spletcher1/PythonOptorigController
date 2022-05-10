@@ -102,11 +102,8 @@ class OptoLifespanRig:
         ba[1]=self.ID
         ba[2]=0x07
         ba[3]=self.endByte
-        tmp = self.thePort.GetTimeOut() 
-        self.thePort.SetTimeOut(1)
         self.thePort.WriteByteArray(ba)
         result = self.thePort.ReadCOBSPacket(10)           
-        self.thePort.SetTimeOut(tmp)   
         if(len(result)==0):
             return "No response"
         else:
@@ -118,11 +115,8 @@ class OptoLifespanRig:
         ba[2]=0x09
         ba[3]=self.endByte
         self.thePort.WriteByteArray(ba)   
-        tmp = self.thePort.GetTimeOut() 
-        self.thePort.SetTimeOut(0.1)      
         result = self.thePort.ReadCOBSPacket(50)          
-        decodedResult = cobs.decode(result)  
-        self.thePort.SetTimeOut(tmp)
+        decodedResult = cobs.decode(result)      
         if (len(decodedResult)!=35):
             return False      
         if(decodedResult[0]!=0xFE):
@@ -131,17 +125,15 @@ class OptoLifespanRig:
         self.remoteProgram.FillProgramStatus(decodedResult2)          
         return True    
     def UpdateRemoteProgramData(self):
+        self.thePort.ClearInputBuffer()
         ba = bytearray(4)        
         ba[0]=3
         ba[1]=self.ID
         ba[2]=0x01
         ba[3]=self.endByte
         self.thePort.WriteByteArray(ba) 
-        tmp = self.thePort.GetTimeOut() 
-        self.thePort.SetTimeOut(20)
         result = self.thePort.ReadCOBSPacket(30000)    
-        decodedResult = cobs.decode(result) 
-        self.thePort.SetTimeOut(tmp)
+        decodedResult = cobs.decode(result)         
         if (len(decodedResult)==0):
             return False      
         if(decodedResult[0]!=0xFE):
@@ -189,12 +181,9 @@ class OptoLifespanRig:
         ba[1]=self.ID
         ba[2]=0x08
         ba[3]=self.endByte
-        self.thePort.WriteByteArray(ba)        
-        tmp = self.thePort.GetTimeOut() 
-        self.thePort.SetTimeOut(0.05)
+        self.thePort.WriteByteArray(ba)                        
         result = self.thePort.ReadCOBSPacket(10)            
-        decodedResult = cobs.decode(result)         
-        self.thePort.SetTimeOut(tmp)
+        decodedResult = cobs.decode(result)                 
         if len(decodedResult)==0:
             return "No response"
         if decodedResult[0]>5:
@@ -267,13 +256,11 @@ class OptoLifespanRig:
     def LoadLocalProgramFromString(self,ss):
         return self.localProgram.LoadLocalProgramFromString(ss)    
 
-    def SeekAcknowledgment(self,timeoutSeconds=0.5):
+    def SeekAcknowledgment(self,timeoutSeconds=1):
         try:
-            tmp = self.thePort.GetTimeOut()
-            self.thePort.SetTimeOut(timeoutSeconds)
+            tmp = self.thePort.GetTimeOut()          
             result = self.thePort.ReadCOBSPacket(4)
-            decodedResult = cobs.decode(result) 
-            self.thePort.SetTimeOut(tmp)
+            decodedResult = cobs.decode(result)                         
             if len(decodedResult)!=2:
                 return False
             elif decodedResult[0] != 0xFE:
